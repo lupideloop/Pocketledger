@@ -17,7 +17,7 @@ const navItems = [
 
 function LayoutInner({ children, currentPageName }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { dark, toggle } = useTheme();
+  const { dark, toggle, currency, changeCurrency } = useTheme();
 
   return (
     <div className={`min-h-screen flex ${dark ? "bg-[#0F0F1A]" : "bg-[#F8F7F4]"}`}>
