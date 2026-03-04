@@ -126,10 +126,10 @@ export default function Assets() {
             </Select>
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Current Value ($)">
+            <Field label="Current Value">
               <Input type="number" step="1" value={form.current_value} onChange={e => setForm(f => ({ ...f, current_value: e.target.value }))} placeholder="0" required />
             </Field>
-            <Field label="Purchase Price ($)">
+            <Field label="Purchase Price">
               <Input type="number" step="1" value={form.purchase_price} onChange={e => setForm(f => ({ ...f, purchase_price: e.target.value }))} placeholder="0" />
             </Field>
           </div>
