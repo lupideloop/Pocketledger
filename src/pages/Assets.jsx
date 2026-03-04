@@ -9,8 +9,6 @@ import { useTheme } from "@/components/finance/ThemeContext";
 const CATEGORIES = ["real_estate", "vehicle", "jewelry", "art", "collectibles", "business", "other"];
 const CAT_LABELS = { real_estate: "Real Estate", vehicle: "Vehicle", jewelry: "Jewelry", art: "Art", collectibles: "Collectibles", business: "Business", other: "Other" };
 const CAT_COLORS = { real_estate: "bg-blue-100 text-blue-700", vehicle: "bg-green-100 text-green-700", jewelry: "bg-yellow-100 text-yellow-700", art: "bg-purple-100 text-purple-700", collectibles: "bg-pink-100 text-pink-700", business: "bg-orange-100 text-orange-700", other: "bg-gray-100 text-gray-600" };
-
-const fmt = (n) => "$" + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const empty = { name: "", category: "real_estate", current_value: "", purchase_price: "", purchase_date: "", notes: "" };
 
 export default function Assets() {
