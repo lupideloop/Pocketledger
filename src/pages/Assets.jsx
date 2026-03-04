@@ -12,7 +12,7 @@ const CAT_COLORS = { real_estate: "bg-blue-100 text-blue-700", vehicle: "bg-gree
 const empty = { name: "", category: "real_estate", current_value: "", purchase_price: "", purchase_date: "", notes: "" };
 
 export default function Assets() {
-  const { dark } = useTheme();
+  const { dark, fmt } = useTheme();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
