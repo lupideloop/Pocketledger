@@ -4,6 +4,7 @@ import { Plus, Trash2, TrendingUp, TrendingDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
+import { useTheme } from "@/components/finance/ThemeContext";
 import { format } from "date-fns";
 
 const TYPES = ["brokerage", "401k", "ira", "roth_ira", "529", "hsa", "crypto", "other"];
@@ -14,6 +15,7 @@ const fmt = (n) => "$" + (n || 0).toLocaleString("en-US", { minimumFractionDigit
 const empty = { name: "", institution: "", account_type: "brokerage", balance: "", contributions: "", gain_loss: "", notes: "", last_updated: format(new Date(), "yyyy-MM-dd") };
 
 export default function Investments() {
+  const { dark } = useTheme();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -30,12 +32,7 @@ export default function Investments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const data = {
-      ...form,
-      balance: parseFloat(form.balance),
-      contributions: form.contributions ? parseFloat(form.contributions) : null,
-      gain_loss: form.gain_loss ? parseFloat(form.gain_loss) : null
-    };
+    const data = { ...form, balance: parseFloat(form.balance), contributions: form.contributions ? parseFloat(form.contributions) : null, gain_loss: form.gain_loss ? parseFloat(form.gain_loss) : null };
     if (editingId) await base44.entities.InvestmentAccount.update(editingId, data);
     else await base44.entities.InvestmentAccount.create(data);
     await load();
@@ -50,28 +47,31 @@ export default function Investments() {
 
   const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
   const totalGain = accounts.reduce((s, a) => s + (a.gain_loss || 0), 0);
+  const textPrimary = dark ? "text-white" : "text-[#1A1A2E]";
+  const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
+  const card = dark ? "bg-[#1E1E30] border-white/10" : "bg-white border-[#E8E6E1]";
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#1A1A2E]">Investment Accounts</h1>
-          <p className="text-[#8A8A99] mt-1">{accounts.length} accounts · {fmt(totalBalance)} total value</p>
+          <h1 className={`text-2xl lg:text-3xl font-bold ${textPrimary}`}>Investments</h1>
+          <p className={`${textMuted} mt-1 text-sm`}>{accounts.length} accounts · {fmt(totalBalance)} total</p>
         </div>
-        <Button onClick={openAdd} className="bg-[#1A1A2E] hover:bg-[#16213E] text-white rounded-xl gap-2">
-          <Plus size={16} /> Add Account
+        <Button onClick={openAdd} className="bg-[#C9A84C] hover:bg-[#b8963f] text-[#1A1A2E] font-semibold rounded-xl gap-2">
+          <Plus size={16} /> Add
         </Button>
       </div>
 
       {accounts.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#1A1A2E] rounded-2xl p-6 text-white">
-            <p className="text-white/50 text-sm mb-1">Total Portfolio Value</p>
-            <p className="text-3xl font-bold text-[#C9A84C]">{fmt(totalBalance)}</p>
+          <div className="bg-[#1A1A2E] rounded-2xl p-5 text-white">
+            <p className="text-white/50 text-sm mb-1">Total Portfolio</p>
+            <p className="text-2xl font-bold text-[#C9A84C]">{fmt(totalBalance)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-[#E8E6E1]">
-            <p className="text-[#8A8A99] text-sm mb-1">Total Gain / Loss</p>
-            <p className={`text-3xl font-bold ${totalGain >= 0 ? "text-green-500" : "text-red-500"}`}>
+          <div className={`rounded-2xl p-5 border ${card}`}>
+            <p className={`text-sm mb-1 ${textMuted}`}>Total Gain / Loss</p>
+            <p className={`text-2xl font-bold ${totalGain >= 0 ? "text-green-500" : "text-red-500"}`}>
               {totalGain >= 0 ? "+" : ""}{fmt(totalGain)}
             </p>
           </div>
@@ -79,34 +79,31 @@ export default function Investments() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading && <div className="col-span-3 text-center py-12 text-[#8A8A99]">Loading...</div>}
+        {loading && <div className={`col-span-3 text-center py-12 ${textMuted}`}>Loading...</div>}
         {!loading && accounts.length === 0 && (
           <div className="col-span-3 text-center py-16">
-            <TrendingUp size={40} className="mx-auto text-[#E8E6E1] mb-3" />
-            <p className="text-[#8A8A99]">No investment accounts yet. Add your first!</p>
+            <TrendingUp size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
+            <p className={textMuted}>No investment accounts yet. Add your first!</p>
           </div>
         )}
         {accounts.map(a => (
-          <div key={a.id} className="bg-white rounded-2xl p-6 border border-[#E8E6E1] hover:shadow-lg transition-shadow group">
+          <div key={a.id} className={`rounded-2xl p-5 border hover:shadow-lg transition-shadow group ${card}`}>
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${a.gain_loss >= 0 ? "bg-green-50" : "bg-red-50"}`}>
-                {a.gain_loss >= 0
-                  ? <TrendingUp size={18} className="text-green-500" />
-                  : <TrendingDown size={18} className="text-red-500" />
-                }
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${a.gain_loss >= 0 ? "bg-green-500/10" : "bg-red-500/10"}`}>
+                {a.gain_loss >= 0 ? <TrendingUp size={18} className="text-green-500" /> : <TrendingDown size={18} className="text-red-500" />}
               </div>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(a)} className="p-1.5 hover:bg-[#F8F7F4] rounded-lg">
-                  <Pencil size={13} className="text-[#8A8A99]" />
+                <button onClick={() => openEdit(a)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                  <Pencil size={13} className={textMuted} />
                 </button>
                 <button onClick={() => handleDelete(a.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
                   <Trash2 size={13} className="text-red-400" />
                 </button>
               </div>
             </div>
-            <p className="font-bold text-[#1A1A2E] text-lg">{a.name}</p>
-            <p className="text-[#8A8A99] text-sm mb-3">{a.institution}</p>
-            <p className="text-2xl font-bold text-[#1A1A2E]">{fmt(a.balance)}</p>
+            <p className={`font-bold text-lg ${textPrimary}`}>{a.name}</p>
+            <p className={`text-sm mb-3 ${textMuted}`}>{a.institution}</p>
+            <p className={`text-2xl font-bold ${textPrimary}`}>{fmt(a.balance)}</p>
             {a.gain_loss != null && (
               <p className={`text-sm font-medium mt-1 ${a.gain_loss >= 0 ? "text-green-500" : "text-red-500"}`}>
                 {a.gain_loss >= 0 ? "+" : ""}{fmt(a.gain_loss)} gain/loss
@@ -115,7 +112,7 @@ export default function Investments() {
             <div className="flex items-center gap-2 mt-3">
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[a.account_type]}`}>{TYPE_LABELS[a.account_type]}</span>
             </div>
-            {a.last_updated && <p className="text-xs text-[#8A8A99] mt-2">Updated {a.last_updated}</p>}
+            {a.last_updated && <p className={`text-xs mt-2 ${textMuted}`}>Updated {a.last_updated}</p>}
           </div>
         ))}
       </div>
