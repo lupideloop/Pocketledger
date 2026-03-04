@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon
 } from "lucide-react";
-import { ThemeProvider, useTheme } from "@/components/finance/ThemeContext";
+import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 
 const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
