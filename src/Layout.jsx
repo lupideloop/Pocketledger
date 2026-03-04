@@ -68,7 +68,16 @@ function LayoutInner({ children, currentPageName }) {
           })}
         </nav>
 
-        <div className="px-4 py-4 border-t border-white/10">
+        <div className="px-4 py-4 border-t border-white/10 space-y-2">
+          <select
+            value={currency.code}
+            onChange={e => changeCurrency(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white/5 text-white/60 hover:text-white text-xs border border-white/10 focus:outline-none focus:border-[#C9A84C]/50 transition-all"
+          >
+            {CURRENCIES.map(c => (
+              <option key={c.code} value={c.code} className="bg-[#1A1A2E]">{c.label}</option>
+            ))}
+          </select>
           <button
             onClick={toggle}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-all text-sm"
