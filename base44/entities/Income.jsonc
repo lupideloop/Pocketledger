@@ -1,0 +1,65 @@
+{
+  "name": "Income",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Income source name"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount received"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "salary",
+        "freelance",
+        "business",
+        "rental",
+        "investment",
+        "dividends",
+        "bonus",
+        "gift",
+        "other"
+      ],
+      "description": "Income category"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "ID of the bank account the income went into"
+    },
+    "bank_account_name": {
+      "type": "string",
+      "description": "Name of the bank account (denormalized for display)"
+    },
+    "recurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "weekly",
+        "bi-weekly",
+        "yearly",
+        "one-time"
+      ],
+      "default": "one-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "amount",
+    "category",
+    "date"
+  ]
+}

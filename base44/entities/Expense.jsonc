@@ -1,0 +1,67 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Expense name"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount spent"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "housing",
+        "food",
+        "transport",
+        "utilities",
+        "healthcare",
+        "entertainment",
+        "shopping",
+        "education",
+        "insurance",
+        "savings",
+        "debt",
+        "other"
+      ],
+      "description": "Expense category"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "ID of the bank account the expense came from"
+    },
+    "bank_account_name": {
+      "type": "string",
+      "description": "Name of the bank account (denormalized for display)"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "recurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "weekly",
+        "yearly",
+        "one-time"
+      ],
+      "default": "one-time"
+    }
+  },
+  "required": [
+    "title",
+    "amount",
+    "category",
+    "date"
+  ]
+}

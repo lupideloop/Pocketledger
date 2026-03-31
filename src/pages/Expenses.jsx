@@ -9,11 +9,12 @@ import { useTheme } from "@/components/finance/ThemeContext";
 const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
 const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
 const RECURRENCES = ["one-time","monthly","weekly","yearly"];
-const empty = { title:"", amount:"", category:"food", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time" };
+const empty = { title:"", amount:"", category:"food", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time", bank_account_id:"", bank_account_name:"" };
 
 export default function Expenses() {
   const { dark, fmt } = useTheme();
   const [items, setItems] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -21,10 +22,18 @@ export default function Expenses() {
   const [submitting, setSubmitting] = useState(false);
 
   const load = () => base44.entities.Expense.list("-date", 100).then(d => { setItems(d); setLoading(false); });
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    base44.entities.BankAccount.list().then(setBankAccounts);
+  }, []);
 
   const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
   const openEdit = (item) => { setForm({ ...item, amount: item.amount ?? "" }); setEditingId(item.id); setShowModal(true); };
+
+  const handleBankChange = (id) => {
+    const acct = bankAccounts.find(b => b.id === id);
+    setForm(f => ({ ...f, bank_account_id: id, bank_account_name: acct ? acct.name : "" }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,7 +80,7 @@ export default function Expenses() {
           <div key={item.id} className="flex items-center justify-between px-5 py-4 group">
             <div>
               <p className={`font-medium text-sm ${textPrimary}`}>{item.title}</p>
-              <p className={`text-xs mt-0.5 ${textMuted}`}>{item.date} · {CAT_LABELS[item.category] || item.category}{item.recurring ? ` · ${item.recurrence}` : ""}</p>
+              <p className={`text-xs mt-0.5 ${textMuted}`}>{item.date} · {CAT_LABELS[item.category] || item.category}{item.recurring ? ` · ${item.recurrence}` : ""}{item.bank_account_name ? ` · ${item.bank_account_name}` : ""}</p>
             </div>
             <div className="flex items-center gap-3">
               <span className="font-bold text-red-400">-{fmt(item.amount)}</span>
@@ -109,6 +118,12 @@ export default function Expenses() {
           <Field label="Recurrence">
             <Select value={form.recurrence} onChange={e => setForm(f => ({ ...f, recurrence: e.target.value, recurring: e.target.value !== "one-time" }))}>
               {RECURRENCES.map(r => <option key={r} value={r}>{r}</option>)}
+            </Select>
+          </Field>
+          <Field label="From Bank Account (optional)">
+            <Select value={form.bank_account_id} onChange={e => handleBankChange(e.target.value)}>
+              <option value="">— None —</option>
+              {bankAccounts.map(b => <option key={b.id} value={b.id}>{b.name} ({b.institution})</option>)}
             </Select>
           </Field>
           <Field label="Notes (optional)">
