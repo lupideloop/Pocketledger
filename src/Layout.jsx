@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon, PiggyBank
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Bank Accounts", page: "BankAccounts", icon: Building2 },
   { label: "Investments", page: "Investments", icon: TrendingUp },
   { label: "Assets", page: "Assets", icon: BarChart3 },
+  { label: "Budgets", page: "Budgets", icon: PiggyBank },
 ];
 
 function LayoutInner({ children, currentPageName }) {

@@ -1,0 +1,40 @@
+{
+  "name": "Budget",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "housing",
+        "food",
+        "transport",
+        "utilities",
+        "healthcare",
+        "entertainment",
+        "shopping",
+        "education",
+        "insurance",
+        "savings",
+        "debt",
+        "other"
+      ],
+      "description": "Expense category this budget applies to"
+    },
+    "monthly_limit": {
+      "type": "number",
+      "description": "Monthly spending limit for this category"
+    },
+    "month": {
+      "type": "string",
+      "description": "Month in YYYY-MM format"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "category",
+    "monthly_limit",
+    "month"
+  ]
+}
