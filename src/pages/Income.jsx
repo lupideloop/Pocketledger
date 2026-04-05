@@ -11,6 +11,13 @@ const CAT_LABELS = { salary:"Salary", freelance:"Freelance", business:"Business"
 const RECURRENCES = ["one-time","monthly","weekly","bi-weekly","yearly"];
 const empty = { source:"", amount:"", category:"salary", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time", bank_account_id:"", bank_account_name:"" };
 
+async function adjustBalance(accountId, delta) {
+  if (!accountId) return;
+  const acct = await base44.entities.BankAccount.list().then(list => list.find(a => a.id === accountId));
+  if (!acct) return;
+  await base44.entities.BankAccount.update(accountId, { balance: (acct.balance || 0) + delta });
+}
+
 export default function Income() {
   const { dark, fmt } = useTheme();
   const [items, setItems] = useState([]);
@@ -18,17 +25,19 @@ export default function Income() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
 
-  const load = () => base44.entities.Income.list("-date", 100).then(d => { setItems(d); setLoading(false); });
-  useEffect(() => {
-    load();
-    base44.entities.BankAccount.list().then(setBankAccounts);
-  }, []);
+  const load = () => Promise.all([
+    base44.entities.Income.list("-date", 100),
+    base44.entities.BankAccount.list(),
+  ]).then(([d, b]) => { setItems(d); setBankAccounts(b); setLoading(false); });
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
-  const openEdit = (item) => { setForm({ ...item, amount: item.amount ?? "" }); setEditingId(item.id); setShowModal(true); };
+  useEffect(() => { load(); }, []);
+
+  const openAdd = () => { setForm(empty); setEditingId(null); setEditingItem(null); setShowModal(true); };
+  const openEdit = (item) => { setForm({ ...item, amount: item.amount ?? "" }); setEditingId(item.id); setEditingItem(item); setShowModal(true); };
 
   const handleBankChange = (id) => {
     const acct = bankAccounts.find(b => b.id === id);
@@ -38,17 +47,35 @@ export default function Income() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const data = { ...form, amount: parseFloat(form.amount) };
-    if (editingId) await base44.entities.Income.update(editingId, data);
-    else await base44.entities.Income.create(data);
+    const newAmount = parseFloat(form.amount);
+    const data = { ...form, amount: newAmount };
+
+    if (editingId && editingItem) {
+      const oldAccountId = editingItem.bank_account_id;
+      const oldAmount = editingItem.amount || 0;
+      const newAccountId = form.bank_account_id;
+
+      if (oldAccountId === newAccountId) {
+        if (oldAccountId) await adjustBalance(oldAccountId, newAmount - oldAmount);
+      } else {
+        if (oldAccountId) await adjustBalance(oldAccountId, -oldAmount);
+        if (newAccountId) await adjustBalance(newAccountId, newAmount);
+      }
+      await base44.entities.Income.update(editingId, data);
+    } else {
+      if (form.bank_account_id) await adjustBalance(form.bank_account_id, newAmount);
+      await base44.entities.Income.create(data);
+    }
+
     await load();
     setShowModal(false);
     setSubmitting(false);
   };
 
-  const handleDelete = async (id) => {
-    await base44.entities.Income.delete(id);
-    setItems(prev => prev.filter(i => i.id !== id));
+  const handleDelete = async (item) => {
+    if (item.bank_account_id) await adjustBalance(item.bank_account_id, -(item.amount || 0));
+    await base44.entities.Income.delete(item.id);
+    setItems(prev => prev.filter(i => i.id !== item.id));
   };
 
   const total = items.reduce((s, i) => s + (i.amount || 0), 0);
@@ -88,7 +115,7 @@ export default function Income() {
                 <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
+                <button onClick={() => handleDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
                   <Trash2 size={13} className="text-red-400" />
                 </button>
               </div>

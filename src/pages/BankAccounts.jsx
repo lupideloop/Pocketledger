@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import AccountTransactions from "@/components/finance/AccountTransactions";
 
 const ACCOUNT_TYPES = ["checking","savings","money_market","cd","other"];
 const TYPE_LABELS = { checking:"Checking", savings:"Savings", money_market:"Money Market", cd:"CD", other:"Other" };
@@ -19,6 +20,7 @@ export default function BankAccounts() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [viewingAccount, setViewingAccount] = useState(null);
 
   const load = () => base44.entities.BankAccount.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
@@ -75,16 +77,20 @@ export default function BankAccounts() {
           </div>
         )}
         {items.map(item => (
-          <div key={item.id} className={`rounded-2xl p-5 border hover:shadow-lg transition-shadow group ${card}`}>
+          <div
+            key={item.id}
+            onClick={() => setViewingAccount(item)}
+            className={`rounded-2xl p-5 border hover:shadow-lg transition-shadow group cursor-pointer ${card}`}
+          >
             <div className="flex items-start justify-between mb-4">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? "bg-white/5" : "bg-[#F8F7F4]"}`}>
                 <Building2 size={18} className="text-[#C9A84C]" />
               </div>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                <button onClick={e => { e.stopPropagation(); openEdit(item); }} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
+                <button onClick={e => { e.stopPropagation(); handleDelete(item.id); }} className="p-1.5 hover:bg-red-50 rounded-lg">
                   <Trash2 size={13} className="text-red-400" />
                 </button>
               </div>
@@ -95,9 +101,14 @@ export default function BankAccounts() {
             <p className={`text-2xl font-bold mt-3 ${textPrimary}`}>{fmt(item.balance)}</p>
             {item.interest_rate ? <p className={`text-xs mt-1 ${textMuted}`}>{item.interest_rate}% interest rate</p> : null}
             {item.last_updated && <p className={`text-xs mt-1 ${textMuted}`}>Updated {item.last_updated}</p>}
+            <p className={`text-xs mt-2 ${dark ? "text-white/20" : "text-[#C9A84C]/60"}`}>Tap to view transactions →</p>
           </div>
         ))}
       </div>
+
+      {viewingAccount && (
+        <AccountTransactions account={viewingAccount} onClose={() => setViewingAccount(null)} />
+      )}
 
       {showModal && (
         <FormModal title={editingId ? "Edit Account" : "Add Account"} onClose={() => setShowModal(false)} onSubmit={handleSubmit} submitting={submitting}>
