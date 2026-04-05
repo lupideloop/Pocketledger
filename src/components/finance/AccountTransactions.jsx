@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { base44 } from "@/api/base44Client";
 import { X, TrendingUp, TrendingDown } from "lucide-react";
 import { useTheme } from "@/components/finance/ThemeContext";
@@ -31,7 +32,7 @@ export default function AccountTransactions({ account, onClose }) {
   const divider = dark ? "divide-white/5" : "divide-[#F0EDE8]";
   const border = dark ? "border-white/10" : "border-[#E8E6E1]";
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[85vh] flex flex-col ${bg}`}>
@@ -80,4 +81,6 @@ export default function AccountTransactions({ account, onClose }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
