@@ -54,6 +54,7 @@ import Expenses from './pages/Expenses';
 import Income from './pages/Income';
 import BankAccounts from './pages/BankAccounts';
 import Investments from './pages/Investments';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Income": Income,
     "BankAccounts": BankAccounts,
     "Investments": Investments,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

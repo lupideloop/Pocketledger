@@ -1,26 +1,39 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon, PiggyBank, RefreshCw
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
+import useTabHistory from "@/hooks/useTabHistory";
 
+// Bottom tabs (mobile): 5 most-used + Settings
+const bottomTabs = [
+  { label: "Home", page: "Dashboard", icon: LayoutDashboard },
+  { label: "Expenses", page: "Expenses", icon: CreditCard },
+  { label: "Income", page: "Income", icon: Wallet },
+  { label: "Accounts", page: "BankAccounts", icon: Building2 },
+  { label: "Settings", page: "Settings", icon: Settings },
+];
+
+// Full sidebar nav (desktop)
 const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
   { label: "Expenses", page: "Expenses", icon: CreditCard },
   { label: "Income", page: "Income", icon: Wallet },
   { label: "Accounts", page: "BankAccounts", icon: Building2 },
-  { label: "Invest", page: "Investments", icon: TrendingUp },
+  { label: "Investments", page: "Investments", icon: TrendingUp },
   { label: "Assets", page: "Assets", icon: BarChart3 },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
+  { label: "Settings", page: "Settings", icon: Settings },
 ];
 
 function LayoutInner({ children, currentPageName }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { dark, toggle, currency, changeCurrency } = useTheme();
   const location = useLocation();
+  const { save, restore } = useTabHistory();
 
   // Pull-to-refresh: reload page by forcing a soft remount key
   const [refreshKey, setRefreshKey] = useState(0);
@@ -30,6 +43,22 @@ function LayoutInner({ children, currentPageName }) {
   }, []);
 
   const { containerRef, refreshing } = usePullToRefresh(handleRefresh);
+
+  // Save scroll position when leaving a tab, restore when returning
+  const prevPage = useRef(currentPageName);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (prevPage.current !== currentPageName) {
+      // Save scroll of previous tab
+      if (el) save(prevPage.current, location.pathname, el.scrollTop);
+      // Restore scroll of current tab
+      const saved = restore(currentPageName);
+      if (el && saved) {
+        requestAnimationFrame(() => { el.scrollTop = saved.scrollY; });
+      }
+      prevPage.current = currentPageName;
+    }
+  }, [currentPageName, location.pathname, save, restore, containerRef]);
 
   const bgPage = dark ? "bg-[#0F0F1A]" : "bg-[#F8F7F4]";
 
@@ -175,7 +204,7 @@ function LayoutInner({ children, currentPageName }) {
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <div className="flex items-center justify-around">
-            {navItems.map(({ label, page, icon: Icon }) => {
+            {bottomTabs.map(({ label, page, icon: Icon }) => {
               const isActive = currentPageName === page;
               return (
                 <Link
@@ -185,7 +214,7 @@ function LayoutInner({ children, currentPageName }) {
                   className={`flex flex-col items-center gap-0.5 py-2 px-1 flex-1 min-w-0 transition-colors active:opacity-60 ${isActive ? "text-[#C9A84C]" : dark ? "text-white/40" : "text-[#8A8A99]"}`}
                 >
                   <Icon size={20} />
-                  <span className="text-[9px] font-medium leading-tight text-center truncate w-full px-0.5">{label}</span>
+                  <span className="text-[10px] font-medium leading-tight text-center truncate w-full px-0.5">{label}</span>
                 </Link>
               );
             })}
