@@ -80,9 +80,48 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* Prevent text selection on interactive elements */
+  button, a, [role="button"] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Remove default native select arrow on mobile for custom selects */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Smooth scrolling for all scrollable containers */
+  .scroll-smooth-touch {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Pull-to-refresh spinner */
+@keyframes ptr-spin {
+  to { transform: rotate(360deg); }
+}
+.ptr-spinner {
+  animation: ptr-spin 0.7s linear infinite;
+}
+
+/* Page transition */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-in 0.18s ease-out both;
 }

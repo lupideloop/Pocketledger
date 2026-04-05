@@ -86,7 +86,7 @@ export default function BankAccounts() {
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? "bg-white/5" : "bg-[#F8F7F4]"}`}>
                 <Building2 size={18} className="text-[#C9A84C]" />
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                 <button onClick={e => { e.stopPropagation(); openEdit(item); }} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>

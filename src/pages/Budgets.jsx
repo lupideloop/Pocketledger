@@ -137,7 +137,7 @@ export default function Budgets() {
                   <span className={`text-xs font-medium ${over ? "text-red-400" : textMuted}`}>
                     {fmt(spent)} / {fmt(b.monthly_limit)}
                   </span>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                     <button onClick={() => openEdit(b)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                       <Pencil size={13} className={textMuted} />
                     </button>

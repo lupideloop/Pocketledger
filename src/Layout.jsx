@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon, PiggyBank
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, X, Sun, Moon, PiggyBank, RefreshCw
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
+import usePullToRefresh from "@/hooks/usePullToRefresh";
 
 const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
   { label: "Expenses", page: "Expenses", icon: CreditCard },
   { label: "Income", page: "Income", icon: Wallet },
-  { label: "Bank Accounts", page: "BankAccounts", icon: Building2 },
-  { label: "Investments", page: "Investments", icon: TrendingUp },
+  { label: "Accounts", page: "BankAccounts", icon: Building2 },
+  { label: "Invest", page: "Investments", icon: TrendingUp },
   { label: "Assets", page: "Assets", icon: BarChart3 },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
 ];
@@ -19,9 +20,25 @@ const navItems = [
 function LayoutInner({ children, currentPageName }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { dark, toggle, currency, changeCurrency } = useTheme();
+  const location = useLocation();
+
+  // Pull-to-refresh: reload page by forcing a soft remount key
+  const [refreshKey, setRefreshKey] = useState(0);
+  const handleRefresh = useCallback(async () => {
+    await new Promise(r => setTimeout(r, 600));
+    setRefreshKey(k => k + 1);
+  }, []);
+
+  const { containerRef, refreshing } = usePullToRefresh(handleRefresh);
+
+  const bgPage = dark ? "bg-[#0F0F1A]" : "bg-[#F8F7F4]";
 
   return (
-    <div className={`min-h-screen flex ${dark ? "bg-[#0F0F1A]" : "bg-[#F8F7F4]"}`}>
+    <div
+      className={`h-screen flex overflow-hidden ${bgPage}`}
+      // Prevent system gesture conflicts
+      style={{ touchAction: "pan-y", WebkitUserSelect: "none" }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         * { font-family: 'Inter', sans-serif; }
@@ -33,7 +50,9 @@ function LayoutInner({ children, currentPageName }) {
         bg-[#1A1A2E]
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:static lg:flex
-      `}>
+      `}
+        style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <div className="px-6 py-8 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#F0D58C] flex items-center justify-center flex-shrink-0">
@@ -89,15 +108,22 @@ function LayoutInner({ children, currentPageName }) {
         </div>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile drawer overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <header className={`lg:hidden flex items-center justify-between px-4 py-3 border-b ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}>
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen">
+
+        {/* Mobile top header — safe area top */}
+        <header
+          className={`lg:hidden flex items-center justify-between px-4 border-b flex-shrink-0 ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)", paddingBottom: "12px" }}
+        >
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#F0D58C] flex items-center justify-center">
               <span className="text-[#1A1A2E] font-bold text-xs">H</span>
@@ -105,23 +131,49 @@ function LayoutInner({ children, currentPageName }) {
             <span className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A2E]"}`}>HomeFinance</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={toggle} className={`p-2 rounded-lg ${dark ? "text-white/60 hover:bg-white/10" : "text-[#8A8A99] hover:bg-gray-100"}`}>
+            <button
+              onClick={toggle}
+              className={`p-2 rounded-lg ${dark ? "text-white/60 hover:bg-white/10" : "text-[#8A8A99] hover:bg-gray-100"}`}
+              aria-label="Toggle theme"
+            >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={() => setMobileOpen(true)} className={`p-2 ${dark ? "text-white" : "text-[#1A1A2E]"}`}>
+            <button
+              onClick={() => setMobileOpen(true)}
+              className={`p-2 rounded-lg ${dark ? "text-white hover:bg-white/10" : "text-[#1A1A2E] hover:bg-gray-100"}`}
+              aria-label="Open menu"
+            >
               <Menu size={20} />
             </button>
           </div>
         </header>
 
-        {/* Page content — add bottom padding for mobile nav */}
-        <main className="flex-1 overflow-auto pb-20 lg:pb-0">
+        {/* Pull-to-refresh indicator */}
+        {refreshing && (
+          <div className={`flex items-center justify-center py-3 text-xs gap-2 flex-shrink-0 ${dark ? "text-white/40" : "text-[#8A8A99]"}`}>
+            <RefreshCw size={14} className="ptr-spinner" />
+            <span>Refreshing…</span>
+          </div>
+        )}
+
+        {/* Scrollable page content */}
+        <main
+          ref={containerRef}
+          key={`${location.pathname}-${refreshKey}`}
+          className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth-touch page-enter`}
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
           {children}
         </main>
 
-        {/* Mobile bottom navigation */}
-        <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-20 border-t ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {/* Mobile bottom navigation — safe area bottom */}
+        <nav
+          className={`lg:hidden fixed bottom-0 left-0 right-0 z-20 border-t ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
           <div className="flex items-center justify-around">
             {navItems.map(({ label, page, icon: Icon }) => {
               const isActive = currentPageName === page;
@@ -129,10 +181,11 @@ function LayoutInner({ children, currentPageName }) {
                 <Link
                   key={page}
                   to={createPageUrl(page)}
-                  className={`flex flex-col items-center gap-0.5 py-2 px-2 flex-1 transition-colors ${isActive ? "text-[#C9A84C]" : dark ? "text-white/40" : "text-[#8A8A99]"}`}
+                  aria-label={label}
+                  className={`flex flex-col items-center gap-0.5 py-2 px-1 flex-1 min-w-0 transition-colors active:opacity-60 ${isActive ? "text-[#C9A84C]" : dark ? "text-white/40" : "text-[#8A8A99]"}`}
                 >
                   <Icon size={20} />
-                  <span className="text-[10px] font-medium leading-tight text-center">{label.replace(" Accounts", "").replace("Investments", "Invest")}</span>
+                  <span className="text-[9px] font-medium leading-tight text-center truncate w-full px-0.5">{label}</span>
                 </Link>
               );
             })}

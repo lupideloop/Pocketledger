@@ -12,22 +12,22 @@ export default function Dashboard() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
-      base44.entities.Expense.list("-date", 100),
-      base44.entities.Income.list("-date", 100),
-      base44.entities.BankAccount.list(),
-      base44.entities.InvestmentAccount.list(),
-      base44.entities.Asset.list(),
-    ]).then(([exp, inc, bank, inv, ast]) => {
-      setExpenses(exp);
-      setIncome(inc);
-      setBankAccounts(bank);
-      setInvestments(inv);
-      setAssets(ast);
-      setLoading(false);
-    });
-  }, []);
+  const loadData = () => Promise.all([
+    base44.entities.Expense.list("-date", 100),
+    base44.entities.Income.list("-date", 100),
+    base44.entities.BankAccount.list(),
+    base44.entities.InvestmentAccount.list(),
+    base44.entities.Asset.list(),
+  ]).then(([exp, inc, bank, inv, ast]) => {
+    setExpenses(exp);
+    setIncome(inc);
+    setBankAccounts(bank);
+    setInvestments(inv);
+    setAssets(ast);
+    setLoading(false);
+  });
+
+  useEffect(() => { loadData(); }, []);
 
   const textPrimary = dark ? "text-white" : "text-[#1A1A2E]";
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";

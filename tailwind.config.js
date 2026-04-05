@@ -86,4 +86,6 @@ module.exports = {
   	}
   },
   plugins: [require("tailwindcss-animate")],
+  // Allow arbitrary media query variants like [@media(hover:none)]
+  future: { hoverOnlyWhenSupported: true },
 }

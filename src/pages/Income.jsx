@@ -73,9 +73,10 @@ export default function Income() {
   };
 
   const handleDelete = async (item) => {
+    // Optimistic removal
+    setItems(prev => prev.filter(i => i.id !== item.id));
     if (item.bank_account_id) await adjustBalance(item.bank_account_id, -(item.amount || 0));
     await base44.entities.Income.delete(item.id);
-    setItems(prev => prev.filter(i => i.id !== item.id));
   };
 
   const total = items.reduce((s, i) => s + (i.amount || 0), 0);
@@ -111,7 +112,7 @@ export default function Income() {
             </div>
             <div className="flex items-center gap-3">
               <span className="font-bold text-green-400">+{fmt(item.amount)}</span>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                 <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>
