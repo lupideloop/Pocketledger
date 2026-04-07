@@ -24,9 +24,9 @@ const navItems = [
   { label: "Income", page: "Income", icon: Wallet },
   { label: "Accounts", page: "BankAccounts", icon: Building2 },
   { label: "Investments", page: "Investments", icon: TrendingUp },
-  { label: "Analytics", page: "Analytics", icon: LineChart },
   { label: "Assets", page: "Assets", icon: BarChart3 },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
+  { label: "Analytics", page: "Analytics", icon: LineChart },
   { label: "Settings", page: "Settings", icon: Settings },
 ];
 
