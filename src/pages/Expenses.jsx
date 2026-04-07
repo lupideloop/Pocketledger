@@ -51,30 +51,32 @@ export default function Expenses() {
     const newAmount = parseFloat(form.amount);
     const data = { ...form, amount: newAmount };
 
+    // Optimistic update
     if (editingId && editingItem) {
-      // Reverse old effect, apply new effect
+      setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...data } : i));
+    } else {
+      setItems(prev => [{ ...data, id: `tmp-${Date.now()}` }, ...prev]);
+    }
+    setShowModal(false);
+    setSubmitting(false);
+
+    // Persist in background
+    if (editingId && editingItem) {
       const oldAccountId = editingItem.bank_account_id;
       const oldAmount = editingItem.amount || 0;
       const newAccountId = form.bank_account_id;
-
       if (oldAccountId === newAccountId) {
-        // Same account: adjust by difference
         if (oldAccountId) await adjustBalance(oldAccountId, -(newAmount - oldAmount));
       } else {
-        // Account changed: restore old, deduct from new
         if (oldAccountId) await adjustBalance(oldAccountId, oldAmount);
         if (newAccountId) await adjustBalance(newAccountId, -newAmount);
       }
       await base44.entities.Expense.update(editingId, data);
     } else {
-      // New expense: deduct from account
       if (form.bank_account_id) await adjustBalance(form.bank_account_id, -newAmount);
       await base44.entities.Expense.create(data);
     }
-
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    load(); // sync real IDs
   };
 
   const handleDelete = async (item) => {

@@ -9,6 +9,17 @@ export default function AccountTransactions({ account, onClose }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Handle Android hardware back button
+  useEffect(() => {
+    const handlePopState = () => onClose();
+    window.history.pushState({ modal: true }, "");
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (window.history.state?.modal) window.history.back();
+    };
+  }, [onClose]);
+
   useEffect(() => {
     Promise.all([
       base44.entities.Expense.list("-date", 500),

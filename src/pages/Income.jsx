@@ -50,11 +50,20 @@ export default function Income() {
     const newAmount = parseFloat(form.amount);
     const data = { ...form, amount: newAmount };
 
+    // Optimistic update
+    if (editingId && editingItem) {
+      setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...data } : i));
+    } else {
+      setItems(prev => [{ ...data, id: `tmp-${Date.now()}` }, ...prev]);
+    }
+    setShowModal(false);
+    setSubmitting(false);
+
+    // Persist in background
     if (editingId && editingItem) {
       const oldAccountId = editingItem.bank_account_id;
       const oldAmount = editingItem.amount || 0;
       const newAccountId = form.bank_account_id;
-
       if (oldAccountId === newAccountId) {
         if (oldAccountId) await adjustBalance(oldAccountId, newAmount - oldAmount);
       } else {
@@ -66,10 +75,7 @@ export default function Income() {
       if (form.bank_account_id) await adjustBalance(form.bank_account_id, newAmount);
       await base44.entities.Income.create(data);
     }
-
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    load(); // sync real IDs
   };
 
   const handleDelete = async (item) => {

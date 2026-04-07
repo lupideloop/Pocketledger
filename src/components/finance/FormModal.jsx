@@ -1,10 +1,24 @@
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/finance/ThemeContext";
 
 export default function FormModal({ title, onClose, children, onSubmit, submitting }) {
   const { dark } = useTheme();
-  return (
+
+  // Handle Android hardware back button / browser back
+  useEffect(() => {
+    const handlePopState = () => onClose();
+    window.history.pushState({ modal: true }, "");
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (window.history.state?.modal) window.history.back();
+    };
+  }, [onClose]);
+
+  const modal = (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto ${dark ? "bg-[#1E1E30]" : "bg-white"}`}>
@@ -28,4 +42,6 @@ export default function FormModal({ title, onClose, children, onSubmit, submitti
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

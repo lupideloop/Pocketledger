@@ -32,11 +32,17 @@ export default function BankAccounts() {
     e.preventDefault();
     setSubmitting(true);
     const data = { ...form, balance: parseFloat(form.balance), interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : null };
-    if (editingId) await base44.entities.BankAccount.update(editingId, data);
-    else await base44.entities.BankAccount.create(data);
-    await load();
+    // Optimistic update
+    if (editingId) {
+      setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...data } : i));
+    } else {
+      setItems(prev => [...prev, { ...data, id: `tmp-${Date.now()}` }]);
+    }
     setShowModal(false);
     setSubmitting(false);
+    if (editingId) await base44.entities.BankAccount.update(editingId, data);
+    else await base44.entities.BankAccount.create(data);
+    load(); // sync real IDs from server
   };
 
   const handleDelete = async (id) => {
