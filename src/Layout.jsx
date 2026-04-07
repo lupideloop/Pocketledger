@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
@@ -13,7 +13,7 @@ const bottomTabs = [
   { label: "Home", page: "Dashboard", icon: LayoutDashboard },
   { label: "Expenses", page: "Expenses", icon: CreditCard },
   { label: "Income", page: "Income", icon: Wallet },
-  { label: "Accounts", page: "BankAccounts", icon: Building2 },
+  { label: "Analytics", page: "Analytics", icon: LineChart },
   { label: "Settings", page: "Settings", icon: Settings },
 ];
 
@@ -24,6 +24,7 @@ const navItems = [
   { label: "Income", page: "Income", icon: Wallet },
   { label: "Accounts", page: "BankAccounts", icon: Building2 },
   { label: "Investments", page: "Investments", icon: TrendingUp },
+  { label: "Analytics", page: "Analytics", icon: LineChart },
   { label: "Assets", page: "Assets", icon: BarChart3 },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
   { label: "Settings", page: "Settings", icon: Settings },
