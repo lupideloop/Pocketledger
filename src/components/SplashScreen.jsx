@@ -5,9 +5,9 @@ export default function SplashScreen({ onDone }) {
 
   useEffect(() => {
     // Fade in → hold → fade out
-    const t1 = setTimeout(() => setPhase("hold"), 400);
-    const t2 = setTimeout(() => setPhase("out"), 1800);
-    const t3 = setTimeout(() => onDone(), 2400);
+    const t1 = setTimeout(() => setPhase("hold"), 500);
+    const t2 = setTimeout(() => setPhase("out"), 3200);
+    const t3 = setTimeout(() => onDone(), 4000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onDone]);
 
