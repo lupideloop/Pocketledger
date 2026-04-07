@@ -52,10 +52,12 @@ function LayoutInner({ children, currentPageName }) {
     if (prevPage.current !== currentPageName) {
       // Save scroll of previous tab
       if (el) save(prevPage.current, location.pathname, el.scrollTop);
-      // Restore scroll of current tab
+      // Restore scroll of current tab — defer to ensure DOM is ready after remount
       const saved = restore(currentPageName);
-      if (el && saved) {
-        requestAnimationFrame(() => { el.scrollTop = saved.scrollY; });
+      if (saved) {
+        setTimeout(() => {
+          if (containerRef.current) containerRef.current.scrollTop = saved.scrollY;
+        }, 50);
       }
       prevPage.current = currentPageName;
     }
@@ -69,10 +71,7 @@ function LayoutInner({ children, currentPageName }) {
       // Prevent system gesture conflicts
       style={{ touchAction: "pan-y", WebkitUserSelect: "none" }}
     >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-      `}</style>
+      {/* Font loaded in index.html <head> — not here */}
 
       {/* Sidebar — desktop only */}
       <aside className={`
@@ -193,7 +192,6 @@ function LayoutInner({ children, currentPageName }) {
           className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth-touch page-enter`}
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)",
-            WebkitOverflowScrolling: "touch",
           }}
         >
           {children}
@@ -201,7 +199,7 @@ function LayoutInner({ children, currentPageName }) {
 
         {/* Mobile bottom navigation — safe area bottom */}
         <nav
-          className={`lg:hidden fixed bottom-0 left-0 right-0 z-20 border-t ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
+          className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <div className="flex items-center justify-around">

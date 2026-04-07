@@ -22,7 +22,13 @@ export const CURRENCIES = [
 
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {
-    try { return localStorage.getItem("hf-theme") === "dark"; } catch { return false; }
+    try {
+      const saved = localStorage.getItem("hf-theme");
+      if (saved === "dark") return true;
+      if (saved === "light") return false;
+      // Respect system dark mode preference on first launch (Android mandatory)
+      return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    } catch { return false; }
   });
 
   const [currency, setCurrency] = useState(() => {
