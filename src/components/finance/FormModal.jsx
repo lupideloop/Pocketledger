@@ -9,12 +9,15 @@ export default function FormModal({ title, onClose, children, onSubmit, submitti
 
   // Handle Android hardware back button / browser back
   useEffect(() => {
-    const handlePopState = () => onClose();
+    const handlePopState = () => {
+      if (window.history.state?.modal) {
+        onClose();
+      }
+    };
     window.history.pushState({ modal: true }, "");
     window.addEventListener("popstate", handlePopState);
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      if (window.history.state?.modal) window.history.back();
     };
   }, [onClose]);
 
