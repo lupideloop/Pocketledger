@@ -86,8 +86,8 @@ export default function NetWorthTrend({ bankAccounts, investments, assets, incom
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.05)" : "#F0EDE8"} vertical={false} />
-          <XAxis dataKey="month" tick={{ fontSize: 11, fill: dark ? "rgba(255,255,255,0.3)" : "#8A8A99" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: dark ? "rgba(255,255,255,0.3)" : "#8A8A99" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+          <XAxis dataKey="month" tick={{ fontSize: 10, fill: dark ? "rgba(255,255,255,0.3)" : "#8A8A99" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <YAxis width={38} tick={{ fontSize: 10, fill: dark ? "rgba(255,255,255,0.3)" : "#8A8A99" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
           <Tooltip contentStyle={tooltipStyle} formatter={(val) => fmt(val)} />
           {minVal < 0 && <ReferenceLine y={0} stroke={dark ? "rgba(255,255,255,0.15)" : "#ccc"} />}
           <Line
