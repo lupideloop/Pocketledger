@@ -63,12 +63,12 @@ export default function HealthSummary({ expenses, income, bankAccounts, investme
       {stats.map(s => {
         const Icon = s.icon;
         return (
-          <div key={s.label} className={`rounded-2xl p-4 border ${card}`}>
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${s.bg}`}>
-              <Icon size={15} className={s.color} />
+          <div key={s.label} className={`rounded-2xl p-3 sm:p-4 border overflow-hidden ${card}`}>
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center mb-2 ${s.bg}`}>
+              <Icon size={14} className={s.color} />
             </div>
-            <p className={`text-xs ${textMuted} leading-tight`}>{s.label}</p>
-            <p className={`text-base font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+            <p className={`text-[10px] sm:text-xs ${textMuted} leading-tight truncate`}>{s.label}</p>
+            <p className={`text-xs sm:text-sm font-bold mt-0.5 ${s.color} truncate`}>{s.value}</p>
           </div>
         );
       })}
