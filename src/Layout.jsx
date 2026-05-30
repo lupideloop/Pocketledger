@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
 import useTabHistory from "@/hooks/useTabHistory";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Bottom tabs (mobile): 5 most-used + Settings
 const bottomTabs = [
@@ -30,11 +31,30 @@ const navItems = [
   { label: "Settings", page: "Settings", icon: Settings },
 ];
 
+// Determine slide direction based on tab order
+const tabOrder = bottomTabs.map(t => t.page);
+
 function LayoutInner({ children, currentPageName }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { dark, toggle, currency, changeCurrency } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const { save, restore } = useTabHistory();
+
+  // Track slide direction for page transitions
+  const prevTabIndex = useRef(tabOrder.indexOf(currentPageName));
+  const [slideDir, setSlideDir] = useState(1);
+
+  useEffect(() => {
+    const newIdx = tabOrder.indexOf(currentPageName);
+    const oldIdx = prevTabIndex.current;
+    if (newIdx !== -1 && oldIdx !== -1 && newIdx !== oldIdx) {
+      setSlideDir(newIdx > oldIdx ? 1 : -1);
+    } else {
+      setSlideDir(1);
+    }
+    prevTabIndex.current = newIdx !== -1 ? newIdx : oldIdx;
+  }, [currentPageName]);
 
   // Pull-to-refresh: reload page by forcing a soft remount key
   const [refreshKey, setRefreshKey] = useState(0);
@@ -64,6 +84,14 @@ function LayoutInner({ children, currentPageName }) {
   }, [currentPageName, location.pathname, save, restore, containerRef]);
 
   const bgPage = dark ? "bg-[#0F0F1A]" : "bg-[#F8F7F4]";
+  const isDashboard = currentPageName === "Dashboard";
+  const isBottomTab = tabOrder.includes(currentPageName);
+
+  const slideVariants = {
+    enter: (dir) => ({ x: dir * 60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir * -60, opacity: 0 }),
+  };
 
   return (
     <div
@@ -153,12 +181,24 @@ function LayoutInner({ children, currentPageName }) {
           className={`lg:hidden flex items-center justify-between px-4 border-b flex-shrink-0 ${dark ? "bg-[#1A1A2E] border-white/10" : "bg-white border-[#E8E6E1]"}`}
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)", paddingBottom: "12px" }}
         >
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#F0D58C] flex items-center justify-center">
-              <span className="text-[#1A1A2E] font-bold text-xs">H</span>
+          {/* Left: back button (non-dashboard) or logo */}
+          {!isDashboard ? (
+            <button
+              onClick={() => navigate(-1)}
+              className={`flex items-center gap-1 p-1 rounded-lg -ml-1 transition-colors ${dark ? "text-[#C9A84C] hover:bg-white/10" : "text-[#C9A84C] hover:bg-gray-100"}`}
+              aria-label="Go back"
+            >
+              <ChevronLeft size={22} />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C9A84C] to-[#F0D58C] flex items-center justify-center">
+                <span className="text-[#1A1A2E] font-bold text-xs">H</span>
+              </div>
+              <span className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A2E]"}`}>HomeFinance</span>
             </div>
-            <span className={`font-semibold text-sm ${dark ? "text-white" : "text-[#1A1A2E]"}`}>HomeFinance</span>
-          </div>
+          )}
           <div className="flex items-center gap-2">
             <button
               onClick={toggle}
@@ -185,17 +225,27 @@ function LayoutInner({ children, currentPageName }) {
           </div>
         )}
 
-        {/* Scrollable page content */}
-        <main
-          ref={containerRef}
-          key={`${location.pathname}-${refreshKey}`}
-          className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth-touch page-enter`}
-          style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)",
-          }}
-        >
-          {children}
-        </main>
+        {/* Scrollable page content with slide transitions on mobile */}
+        <div className="flex-1 relative overflow-hidden">
+          <AnimatePresence initial={false} custom={slideDir} mode="wait">
+            <motion.main
+              key={location.pathname}
+              ref={containerRef}
+              custom={slideDir}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+              className={`absolute inset-0 overflow-y-auto overflow-x-hidden scroll-smooth-touch`}
+              style={{
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)",
+              }}
+            >
+              {children}
+            </motion.main>
+          </AnimatePresence>
+        </div>
 
         {/* Mobile bottom navigation — safe area bottom */}
         <nav
