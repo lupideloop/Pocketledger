@@ -1,0 +1,53 @@
+{
+  "name": "InvestmentAccount",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "institution": {
+      "type": "string",
+      "description": "Brokerage or institution"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "brokerage",
+        "401k",
+        "ira",
+        "roth_ira",
+        "529",
+        "hsa",
+        "crypto",
+        "other"
+      ],
+      "description": "Type of investment account"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Current value"
+    },
+    "contributions": {
+      "type": "number",
+      "description": "Total contributions"
+    },
+    "gain_loss": {
+      "type": "number",
+      "description": "Total gain or loss"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "name",
+    "institution",
+    "account_type",
+    "balance"
+  ]
+}

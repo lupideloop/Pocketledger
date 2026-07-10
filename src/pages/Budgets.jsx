@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Pencil, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
+import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 
@@ -23,11 +24,12 @@ export default function Budgets() {
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(thisMonth());
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = async () => {
     const [b, e] = await Promise.all([
       base44.entities.Budget.list(),
-      base44.entities.Expense.list("-date", 500),
+      base44.entities.Expense.list("-date", 5000),
     ]);
     setBudgets(b);
     setExpenses(e);
@@ -51,6 +53,7 @@ export default function Budgets() {
   };
 
   const handleDelete = async (id) => {
+    setConfirmDelete(null);
     await base44.entities.Budget.delete(id);
     setBudgets(prev => prev.filter(b => b.id !== id));
   };
@@ -121,8 +124,8 @@ export default function Budgets() {
         )}
         {monthBudgets.map(b => {
           const spent = spentByCategory[b.category] || 0;
-          const pct = Math.min((spent / b.monthly_limit) * 100, 100);
-          const over = spent > b.monthly_limit;
+          const pct = b.monthly_limit > 0 ? Math.min((spent / b.monthly_limit) * 100, 100) : 0;
+          const over = b.monthly_limit > 0 && spent > b.monthly_limit;
           const remaining = b.monthly_limit - spent;
           const barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-yellow-500" : CAT_COLORS[b.category] || "bg-[#C9A84C]";
 
@@ -141,7 +144,7 @@ export default function Budgets() {
                     <button onClick={() => openEdit(b)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                       <Pencil size={13} className={textMuted} />
                     </button>
-                    <button onClick={() => handleDelete(b.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
+                    <button onClick={() => setConfirmDelete(b)} className="p-1.5 hover:bg-red-50 rounded-lg">
                       <Trash2 size={13} className="text-red-400" />
                     </button>
                   </div>
@@ -166,6 +169,15 @@ export default function Budgets() {
           );
         })}
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this budget?"
+          message={`The ${CAT_LABELS[confirmDelete.category] || confirmDelete.category} budget for ${confirmDelete.month} will be permanently removed.`}
+          onConfirm={() => handleDelete(confirmDelete.id)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
       {showModal && (
         <FormModal title={editingId ? "Edit Budget" : "Add Budget"} onClose={() => setShowModal(false)} onSubmit={handleSubmit} submitting={submitting}>

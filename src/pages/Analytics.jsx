@@ -29,8 +29,8 @@ export default function Analytics() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Expense.list("-date", 1000),
-      base44.entities.Income.list("-date", 1000),
+      base44.entities.Expense.list("-date", 5000),
+      base44.entities.Income.list("-date", 5000),
       base44.entities.BankAccount.list(),
       base44.entities.InvestmentAccount.list(),
       base44.entities.Asset.list(),

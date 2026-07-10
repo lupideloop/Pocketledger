@@ -1,0 +1,46 @@
+{
+  "name": "BankAccount",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "institution": {
+      "type": "string",
+      "description": "Bank or institution name"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "checking",
+        "savings",
+        "money_market",
+        "cd",
+        "other"
+      ],
+      "description": "Type of bank account"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Current balance"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Interest rate %"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "name",
+    "institution",
+    "account_type",
+    "balance"
+  ]
+}

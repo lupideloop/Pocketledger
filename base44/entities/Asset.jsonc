@@ -1,0 +1,43 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Asset name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "real_estate",
+        "vehicle",
+        "jewelry",
+        "art",
+        "collectibles",
+        "business",
+        "other"
+      ],
+      "description": "Asset category"
+    },
+    "current_value": {
+      "type": "number",
+      "description": "Current estimated value"
+    },
+    "purchase_price": {
+      "type": "number",
+      "description": "Original purchase price"
+    },
+    "purchase_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "current_value"
+  ]
+}

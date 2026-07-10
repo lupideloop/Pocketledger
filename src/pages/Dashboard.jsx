@@ -13,8 +13,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const loadData = () => Promise.all([
-    base44.entities.Expense.list("-date", 100),
-    base44.entities.Income.list("-date", 100),
+    base44.entities.Expense.list("-date", 5000),
+    base44.entities.Income.list("-date", 5000),
     base44.entities.BankAccount.list(),
     base44.entities.InvestmentAccount.list(),
     base44.entities.Asset.list(),

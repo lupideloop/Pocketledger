@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Pencil, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
+import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 
@@ -29,9 +30,10 @@ export default function Expenses() {
   const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => Promise.all([
-    base44.entities.Expense.list("-date", 100),
+    base44.entities.Expense.list("-date", 5000),
     base44.entities.BankAccount.list(),
   ]).then(([d, b]) => { setItems(d); setBankAccounts(b); setLoading(false); });
 
@@ -82,6 +84,7 @@ export default function Expenses() {
   const handleDelete = async (item) => {
     // Optimistic removal
     setItems(prev => prev.filter(i => i.id !== item.id));
+    setConfirmDelete(null);
     if (item.bank_account_id) await adjustBalance(item.bank_account_id, item.amount || 0);
     await base44.entities.Expense.delete(item.id);
   };
@@ -123,7 +126,7 @@ export default function Expenses() {
                 <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>
-                <button onClick={() => handleDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
+                <button onClick={() => setConfirmDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
                   <Trash2 size={13} className="text-red-400" />
                 </button>
               </div>
@@ -131,6 +134,15 @@ export default function Expenses() {
           </div>
         ))}
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this expense?"
+          message={`"${confirmDelete.title}" will be permanently removed.`}
+          onConfirm={() => handleDelete(confirmDelete)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
       {showModal && (
         <FormModal title={editingId ? "Edit Expense" : "Add Expense"} onClose={() => setShowModal(false)} onSubmit={handleSubmit} submitting={submitting}>

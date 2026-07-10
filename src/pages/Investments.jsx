@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
+import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 
@@ -19,6 +20,7 @@ export default function Investments() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => base44.entities.InvestmentAccount.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
@@ -43,6 +45,7 @@ export default function Investments() {
   };
 
   const handleDelete = async (id) => {
+    setConfirmDelete(null);
     await base44.entities.InvestmentAccount.delete(id);
     setItems(prev => prev.filter(i => i.id !== id));
   };
@@ -98,7 +101,7 @@ export default function Investments() {
                 <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
                   <Pencil size={13} className={textMuted} />
                 </button>
-                <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
+                <button onClick={() => setConfirmDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
                   <Trash2 size={13} className="text-red-400" />
                 </button>
               </div>
@@ -117,6 +120,15 @@ export default function Investments() {
           </div>
         ))}
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this investment account?"
+          message={`"${confirmDelete.name}" will be permanently removed.`}
+          onConfirm={() => handleDelete(confirmDelete.id)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
 
       {showModal && (
         <FormModal title={editingId ? "Edit Account" : "Add Account"} onClose={() => setShowModal(false)} onSubmit={handleSubmit} submitting={submitting}>
