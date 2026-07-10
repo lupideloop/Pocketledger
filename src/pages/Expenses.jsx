@@ -6,6 +6,7 @@ import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import FormError from "@/components/finance/FormError";
 
 const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
 const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
@@ -157,7 +158,7 @@ export default function Expenses() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
-          {saveError && <p className="text-sm text-red-400" role="alert">{saveError}</p>}
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

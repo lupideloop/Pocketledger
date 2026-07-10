@@ -6,6 +6,7 @@ import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import FormError from "@/components/finance/FormError";
 
 const CATEGORIES = ["real_estate", "vehicle", "jewelry", "art", "collectibles", "business", "other"];
 const CAT_LABELS = { real_estate: "Real Estate", vehicle: "Vehicle", jewelry: "Jewelry", art: "Art", collectibles: "Collectibles", business: "Business", other: "Other" };
@@ -20,23 +21,30 @@ export default function Assets() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => base44.entities.Asset.list().then(d => { setAssets(d); setLoading(false); });
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
-  const openEdit = (a) => { setForm({ ...a, current_value: a.current_value ?? "", purchase_price: a.purchase_price ?? "" }); setEditingId(a.id); setShowModal(true); };
+  const openAdd = () => { setForm(empty); setEditingId(null); setSaveError(""); setShowModal(true); };
+  const openEdit = (a) => { setForm({ ...a, current_value: a.current_value ?? "", purchase_price: a.purchase_price ?? "" }); setEditingId(a.id); setSaveError(""); setShowModal(true); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     const data = { ...form, current_value: parseFloat(form.current_value), purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : null };
-    if (editingId) await base44.entities.Asset.update(editingId, data);
-    else await base44.entities.Asset.create(data);
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    setSaveError("");
+    try {
+      if (editingId) await base44.entities.Asset.update(editingId, data);
+      else await base44.entities.Asset.create(data);
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save this asset.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -151,6 +159,7 @@ export default function Assets() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

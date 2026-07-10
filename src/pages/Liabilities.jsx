@@ -6,6 +6,7 @@ import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import FormError from "@/components/finance/FormError";
 
 const CATEGORIES = ["mortgage", "car_loan", "student_loan", "credit_card", "personal_loan", "medical", "tax_debt", "other"];
 const CAT_LABELS = { mortgage: "Mortgage", car_loan: "Car Loan", student_loan: "Student Loan", credit_card: "Credit Card", personal_loan: "Personal Loan", medical: "Medical", tax_debt: "Tax Debt", other: "Other" };
@@ -20,12 +21,13 @@ export default function Liabilities() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => base44.entities.Liability.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
+  const openAdd = () => { setForm(empty); setEditingId(null); setSaveError(""); setShowModal(true); };
   const openEdit = (item) => {
     setForm({
       ...item,
@@ -35,6 +37,7 @@ export default function Liabilities() {
       minimum_payment: item.minimum_payment ?? "",
     });
     setEditingId(item.id);
+    setSaveError("");
     setShowModal(true);
   };
 
@@ -48,11 +51,17 @@ export default function Liabilities() {
       interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : null,
       minimum_payment: form.minimum_payment ? parseFloat(form.minimum_payment) : null,
     };
-    if (editingId) await base44.entities.Liability.update(editingId, data);
-    else await base44.entities.Liability.create(data);
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    setSaveError("");
+    try {
+      if (editingId) await base44.entities.Liability.update(editingId, data);
+      else await base44.entities.Liability.create(data);
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save this liability.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -178,6 +187,7 @@ export default function Liabilities() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

@@ -7,6 +7,7 @@ import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 import AccountTransactions from "@/components/finance/AccountTransactions";
+import FormError from "@/components/finance/FormError";
 
 const ACCOUNT_TYPES = ["checking","savings","money_market","cd","other"];
 const TYPE_LABELS = { checking:"Checking", savings:"Savings", money_market:"Money Market", cd:"CD", other:"Other" };
@@ -21,30 +22,31 @@ export default function BankAccounts() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [viewingAccount, setViewingAccount] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => base44.entities.BankAccount.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
-  const openEdit = (item) => { setForm({ ...item, balance: item.balance ?? "", interest_rate: item.interest_rate ?? "" }); setEditingId(item.id); setShowModal(true); };
+  const openAdd = () => { setForm(empty); setEditingId(null); setSaveError(""); setShowModal(true); };
+  const openEdit = (item) => { setForm({ ...item, balance: item.balance ?? "", interest_rate: item.interest_rate ?? "" }); setEditingId(item.id); setSaveError(""); setShowModal(true); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setSaveError("");
     const data = { ...form, balance: parseFloat(form.balance), interest_rate: form.interest_rate ? parseFloat(form.interest_rate) : null };
-    // Optimistic update
-    if (editingId) {
-      setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...data } : i));
-    } else {
-      setItems(prev => [...prev, { ...data, id: `tmp-${Date.now()}` }]);
+    try {
+      if (editingId) await base44.entities.BankAccount.update(editingId, data);
+      else await base44.entities.BankAccount.create(data);
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save this account.");
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
-    setSubmitting(false);
-    if (editingId) await base44.entities.BankAccount.update(editingId, data);
-    else await base44.entities.BankAccount.create(data);
-    load(); // sync real IDs from server
   };
 
   const handleDelete = async (id) => {
@@ -155,6 +157,7 @@ export default function BankAccounts() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

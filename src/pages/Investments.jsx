@@ -6,6 +6,7 @@ import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import FormError from "@/components/finance/FormError";
 
 const ACCOUNT_TYPES = ["brokerage","401k","ira","roth_ira","529","hsa","crypto","other"];
 const TYPE_LABELS = { brokerage:"Brokerage", "401k":"401(k)", ira:"IRA", roth_ira:"Roth IRA", "529":"529 Plan", hsa:"HSA", crypto:"Crypto", other:"Other" };
@@ -20,13 +21,14 @@ export default function Investments() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => base44.entities.InvestmentAccount.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setShowModal(true); };
-  const openEdit = (item) => { setForm({ ...item, balance: item.balance ?? "", contributions: item.contributions ?? "", gain_loss: item.gain_loss ?? "" }); setEditingId(item.id); setShowModal(true); };
+  const openAdd = () => { setForm(empty); setEditingId(null); setSaveError(""); setShowModal(true); };
+  const openEdit = (item) => { setForm({ ...item, balance: item.balance ?? "", contributions: item.contributions ?? "", gain_loss: item.gain_loss ?? "" }); setEditingId(item.id); setSaveError(""); setShowModal(true); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,11 +39,17 @@ export default function Investments() {
       contributions: form.contributions ? parseFloat(form.contributions) : null,
       gain_loss: form.gain_loss ? parseFloat(form.gain_loss) : null,
     };
-    if (editingId) await base44.entities.InvestmentAccount.update(editingId, data);
-    else await base44.entities.InvestmentAccount.create(data);
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    setSaveError("");
+    try {
+      if (editingId) await base44.entities.InvestmentAccount.update(editingId, data);
+      else await base44.entities.InvestmentAccount.create(data);
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save this investment account.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -160,6 +168,7 @@ export default function Investments() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

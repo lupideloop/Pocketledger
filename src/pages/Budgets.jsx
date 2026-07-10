@@ -6,6 +6,7 @@ import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
+import FormError from "@/components/finance/FormError";
 
 const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
 const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
@@ -23,6 +24,7 @@ export default function Budgets() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(thisMonth());
   const [confirmDelete, setConfirmDelete] = useState(null);
 
@@ -38,18 +40,24 @@ export default function Budgets() {
 
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm({ ...empty, month: selectedMonth }); setEditingId(null); setShowModal(true); };
-  const openEdit = (b) => { setForm({ ...b, monthly_limit: b.monthly_limit ?? "" }); setEditingId(b.id); setShowModal(true); };
+  const openAdd = () => { setForm({ ...empty, month: selectedMonth }); setEditingId(null); setSaveError(""); setShowModal(true); };
+  const openEdit = (b) => { setForm({ ...b, monthly_limit: b.monthly_limit ?? "" }); setEditingId(b.id); setSaveError(""); setShowModal(true); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     const data = { ...form, monthly_limit: parseFloat(form.monthly_limit) };
-    if (editingId) await base44.entities.Budget.update(editingId, data);
-    else await base44.entities.Budget.create(data);
-    await load();
-    setShowModal(false);
-    setSubmitting(false);
+    setSaveError("");
+    try {
+      if (editingId) await base44.entities.Budget.update(editingId, data);
+      else await base44.entities.Budget.create(data);
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save this budget.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -195,6 +203,7 @@ export default function Budgets() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          <FormError message={saveError} />
         </FormModal>
       )}
     </div>

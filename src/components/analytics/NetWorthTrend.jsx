@@ -72,10 +72,10 @@ export default function NetWorthTrend({ bankAccounts, investments, assets, liabi
     <div className={`rounded-2xl p-5 border ${card}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className={`text-base font-semibold ${textPrimary}`}>Net Worth Over Time</h2>
+          <h2 className={`text-base font-semibold ${textPrimary}`}>Estimated Net Worth Trend</h2>
           {data.length > 1 && (
             <p className={`text-xs mt-0.5 ${change >= 0 ? "text-green-400" : "text-red-400"}`}>
-              {change >= 0 ? "+" : ""}{fmt(change)} over period
+              {change >= 0 ? "+" : ""}{fmt(change)} estimated change
             </p>
           )}
         </div>
@@ -84,6 +84,9 @@ export default function NetWorthTrend({ bankAccounts, investments, assets, liabi
           <p className="text-lg font-bold text-[#C9A84C]">{fmt(baseNetWorth)}</p>
         </div>
       </div>
+      <p className={`text-xs mb-4 ${textMuted}`}>
+        Estimate based on today&apos;s account, investment, asset, and liability values, adjusted by recorded income and expenses. It is not a historical valuation.
+      </p>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke={dark ? "rgba(255,255,255,0.05)" : "#F0EDE8"} vertical={false} />
