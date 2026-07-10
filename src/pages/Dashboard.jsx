@@ -36,8 +36,14 @@ export default function Dashboard() {
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
   const card = dark ? "bg-[#1E1E30] border-white/10" : "bg-white border-[#E8E6E1]";
 
-  const totalIncome = income.reduce((s, i) => s + (i.amount || 0), 0);
-  const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+  const now = new Date();
+  const monthPrefix = now.toISOString().slice(0, 7);
+  const monthLabel = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const monthIncome = income.filter(i => (i.date || "").startsWith(monthPrefix));
+  const monthExpenses = expenses.filter(e => (e.date || "").startsWith(monthPrefix));
+  const totalIncome = monthIncome.reduce((s, i) => s + (i.amount || 0), 0);
+  const totalExpenses = monthExpenses.reduce((s, e) => s + (e.amount || 0), 0);
   const netCashFlow = totalIncome - totalExpenses;
   const totalBankBalance = bankAccounts.reduce((s, b) => s + (b.balance || 0), 0);
   const totalInvestments = investments.reduce((s, i) => s + (i.balance || 0), 0);
@@ -50,10 +56,10 @@ export default function Dashboard() {
     { label: "Bank Balance", value: fmt(totalBankBalance), icon: Building2, color: "text-blue-400", bg: "bg-blue-400/10" },
     { label: "Investments", value: fmt(totalInvestments), icon: BarChart3, color: "text-purple-400", bg: "bg-purple-400/10" },
     { label: "Liabilities", value: fmt(totalLiabilities), icon: Landmark, color: "text-orange-400", bg: "bg-orange-400/10" },
-    { label: "Total Income", value: fmt(totalIncome), icon: Wallet, color: "text-green-400", bg: "bg-green-400/10" },
-    { label: "Total Expenses", value: fmt(totalExpenses), icon: CreditCard, color: "text-red-400", bg: "bg-red-400/10" },
+    { label: `Income · ${monthLabel}`, value: fmt(totalIncome), icon: Wallet, color: "text-green-400", bg: "bg-green-400/10" },
+    { label: `Expenses · ${monthLabel}`, value: fmt(totalExpenses), icon: CreditCard, color: "text-red-400", bg: "bg-red-400/10" },
     {
-      label: "Net Cash Flow",
+      label: `Net Cash Flow · ${monthLabel}`,
       value: fmt(Math.abs(netCashFlow)),
       icon: netCashFlow >= 0 ? TrendingUp : TrendingDown,
       color: netCashFlow >= 0 ? "text-green-400" : "text-red-400",
