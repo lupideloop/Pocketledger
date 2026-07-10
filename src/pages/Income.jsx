@@ -9,6 +9,8 @@ import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
 import TransactionFilters from "@/components/finance/TransactionFilters";
 import ListPagination from "@/components/finance/ListPagination";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import { toast } from "@/components/ui/use-toast";
 
 const CATEGORIES = ["salary","freelance","business","rental","investment","dividends","bonus","gift","other"];
 const CAT_LABELS = { salary:"Salary", freelance:"Freelance", business:"Business", rental:"Rental", investment:"Investment", dividends:"Dividends", bonus:"Bonus", gift:"Gift", other:"Other" };
@@ -60,6 +62,7 @@ export default function Income() {
       });
       await load();
       setShowModal(false);
+      toast({ title: editingId ? "Income updated" : "Income saved" });
     } catch (error) {
       setSaveError(error.response?.data?.error || error.message || "Unable to save this income entry.");
     } finally {
@@ -75,6 +78,7 @@ export default function Income() {
     });
     setConfirmDelete(null);
     await load();
+    toast({ title: "Income entry deleted" });
   };
 
   const total = items.reduce((s, i) => s + (i.amount || 0), 0);
@@ -102,7 +106,7 @@ export default function Income() {
       <TransactionFilters search={search} onSearch={value => { setSearch(value); setPage(1); }} category={categoryFilter} onCategory={value => { setCategoryFilter(value); setPage(1); }} categories={CATEGORIES} labels={CAT_LABELS} count={filteredItems.length} />
 
       <div className={`rounded-2xl border divide-y ${card} ${dark ? "divide-white/5" : "divide-[#F0EDE8]"}`}>
-        {loading && <div className={`text-center py-12 ${textMuted}`}>Loading...</div>}
+        {loading && <div className={`p-4 ${textMuted}`}><LoadingSkeleton variant="list" count={4} /></div>}
         {!loading && items.length === 0 && (
           <div className="text-center py-16">
             <Wallet size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
@@ -118,12 +122,12 @@ export default function Income() {
             </div>
             <div className="flex items-center gap-3">
               <span className="font-bold text-green-400">+{fmt(item.amount)}</span>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
-                  <Pencil size={13} className={textMuted} />
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
+                <button onClick={() => openEdit(item)} aria-label={`Edit ${item.source}`} className={`h-11 w-11 flex items-center justify-center rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                  <Pencil size={16} className={textMuted} />
                 </button>
-                <button onClick={() => setConfirmDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
-                  <Trash2 size={13} className="text-red-400" />
+                <button onClick={() => setConfirmDelete(item)} aria-label={`Delete ${item.source}`} className="h-11 w-11 flex items-center justify-center hover:bg-red-50 rounded-lg">
+                  <Trash2 size={16} className="text-red-400" />
                 </button>
               </div>
             </div>

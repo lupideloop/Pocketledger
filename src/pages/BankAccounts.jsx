@@ -8,6 +8,8 @@ import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup"
 import { useTheme } from "@/components/finance/ThemeContext";
 import AccountTransactions from "@/components/finance/AccountTransactions";
 import FormError from "@/components/finance/FormError";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import { toast } from "@/components/ui/use-toast";
 
 const ACCOUNT_TYPES = ["checking","savings","money_market","cd","other"];
 const TYPE_LABELS = { checking:"Checking", savings:"Savings", money_market:"Money Market", cd:"CD", other:"Other" };
@@ -42,6 +44,7 @@ export default function BankAccounts() {
       else await base44.entities.BankAccount.create(data);
       await load();
       setShowModal(false);
+      toast({ title: editingId ? "Bank account updated" : "Bank account saved" });
     } catch (error) {
       setSaveError(error.message || "Unable to save this account.");
     } finally {
@@ -53,6 +56,7 @@ export default function BankAccounts() {
     setConfirmDelete(null);
     await base44.entities.BankAccount.delete(id);
     setItems(prev => prev.filter(i => i.id !== id));
+    toast({ title: "Bank account deleted" });
   };
 
   const total = items.reduce((s, i) => s + (i.balance || 0), 0);
@@ -80,7 +84,7 @@ export default function BankAccounts() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading && <div className={`col-span-3 text-center py-12 ${textMuted}`}>Loading...</div>}
+        {loading && <div className={`col-span-3 ${textMuted}`}><LoadingSkeleton variant="cards" count={3} /></div>}
         {!loading && items.length === 0 && (
           <div className="col-span-3 text-center py-16">
             <Building2 size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
@@ -97,12 +101,12 @@ export default function BankAccounts() {
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? "bg-white/5" : "bg-[#F8F7F4]"}`}>
                 <Building2 size={18} className="text-[#C9A84C]" />
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
-                <button onClick={e => { e.stopPropagation(); openEdit(item); }} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
-                  <Pencil size={13} className={textMuted} />
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
+                <button onClick={e => { e.stopPropagation(); openEdit(item); }} aria-label={`Edit ${item.name}`} className={`h-11 w-11 flex items-center justify-center rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                  <Pencil size={16} className={textMuted} />
                 </button>
-                <button onClick={e => { e.stopPropagation(); setConfirmDelete(item); }} className="p-1.5 hover:bg-red-50 rounded-lg">
-                  <Trash2 size={13} className="text-red-400" />
+                <button onClick={e => { e.stopPropagation(); setConfirmDelete(item); }} aria-label={`Delete ${item.name}`} className="h-11 w-11 flex items-center justify-center hover:bg-red-50 rounded-lg">
+                  <Trash2 size={16} className="text-red-400" />
                 </button>
               </div>
             </div>

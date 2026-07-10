@@ -1,17 +1,35 @@
 {
-  "properties": {
-    "role": {
-      "type": "string",
-      "description": "The role of the user in the app",
-      "enum": [
-        "admin",
-        "user"
-      ]
-    }
-  },
-  "required": [
-    "role"
-  ],
   "name": "User",
-  "type": "object"
+  "type": "object",
+  "properties": {
+    "theme_preference": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "description": "Preferred app color theme"
+    },
+    "currency_preference": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY",
+        "CAD",
+        "AUD",
+        "CHF",
+        "CNY",
+        "INR",
+        "BRL",
+        "MXN",
+        "SEK",
+        "NOK",
+        "DKK",
+        "SGD"
+      ],
+      "description": "Preferred display currency"
+    }
+  }
 }

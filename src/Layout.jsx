@@ -7,7 +7,7 @@ import {
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
 import useTabHistory from "@/hooks/useTabHistory";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 // Bottom tabs (mobile): 5 most-used + Settings
 const bottomTabs = [
@@ -41,6 +41,7 @@ function LayoutInner({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { save, restore } = useTabHistory();
+  const reduceMotion = useReducedMotion();
 
   // Track slide direction for page transitions
   const prevTabIndex = useRef(tabOrder.indexOf(currentPageName));
@@ -88,7 +89,9 @@ function LayoutInner({ children, currentPageName }) {
   const isDashboard = currentPageName === "Dashboard";
   const isBottomTab = tabOrder.includes(currentPageName);
 
-  const slideVariants = {
+  const slideVariants = reduceMotion ? {
+    enter: { x: 0, opacity: 1 }, center: { x: 0, opacity: 1 }, exit: { x: 0, opacity: 1 },
+  } : {
     enter: (dir) => ({ x: dir * 60, opacity: 0 }),
     center: { x: 0, opacity: 1 },
     exit: (dir) => ({ x: dir * -60, opacity: 0 }),
@@ -237,7 +240,7 @@ function LayoutInner({ children, currentPageName }) {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
               className={`absolute inset-0 overflow-y-auto overflow-x-hidden scroll-smooth-touch`}
               style={{
                 paddingBottom: "calc(env(safe-area-inset-bottom) + 5rem)",

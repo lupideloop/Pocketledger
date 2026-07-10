@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import { User, Trash2, LogOut, AlertTriangle, ChevronRight, Moon, Sun, DollarSign } from "lucide-react";
 import ExportBackupButton from "@/components/finance/ExportBackupButton";
+import useAccessibleDialog from "@/hooks/useAccessibleDialog";
 
 export default function Settings() {
   const { dark, toggle, currency, changeCurrency } = useTheme();
@@ -10,6 +11,8 @@ export default function Settings() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const closeDeleteDialog = () => { setShowDeleteConfirm(false); setDeleteInput(""); };
+  const { dialogRef, titleId, close } = useAccessibleDialog(closeDeleteDialog, showDeleteConfirm);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -148,14 +151,14 @@ export default function Settings() {
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }} />
-          <div className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-6 space-y-4 ${dark ? "bg-[#1E1E30]" : "bg-white"}`}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={close} aria-hidden="true" />
+          <div ref={dialogRef} role="alertdialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-6 space-y-4 ${dark ? "bg-[#1E1E30]" : "bg-white"}`}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle size={20} className="text-red-400" />
               </div>
               <div>
-                <h2 className={`font-bold text-base ${textPrimary}`}>Delete Account</h2>
+                <h2 id={titleId} className={`font-bold text-base ${textPrimary}`}>Delete Account</h2>
                 <p className={`text-xs ${textMuted}`}>This cannot be undone</p>
               </div>
             </div>
@@ -174,7 +177,7 @@ export default function Settings() {
             </div>
             <div className="flex gap-3 pt-1">
               <button
-                onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
+                onClick={close}
                 className={`flex-1 py-3 rounded-xl text-sm font-medium border transition-colors ${dark ? "border-white/10 text-white hover:bg-white/5" : "border-[#E8E6E1] text-[#1A1A2E] hover:bg-gray-50"}`}
               >
                 Cancel

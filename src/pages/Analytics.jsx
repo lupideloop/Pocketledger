@@ -6,6 +6,7 @@ import IncomeTrend from "@/components/analytics/IncomeTrend";
 import NetWorthTrend from "@/components/analytics/NetWorthTrend";
 import HealthSummary from "@/components/analytics/HealthSummary";
 import DateRangePicker from "@/components/analytics/DateRangePicker";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
 
 export default function Analytics() {
   const { dark, fmt } = useTheme();
@@ -77,7 +78,7 @@ export default function Analytics() {
       </div>
 
       {loading ? (
-        <div className={`text-center py-20 ${textMuted}`}>Loading...</div>
+        <div className={textMuted}><LoadingSkeleton variant="dashboard" count={6} /></div>
       ) : (
         <>
           {/* Health summary cards */}

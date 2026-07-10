@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/components/finance/ThemeContext";
 import { TrendingUp, TrendingDown, Building2, BarChart3, Wallet, CreditCard, Landmark, PiggyBank, CalendarClock } from "lucide-react";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
 
 export default function Dashboard() {
   const { dark, fmt } = useTheme();
@@ -94,7 +95,7 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div className={`text-center py-20 ${textMuted}`}>Loading...</div>
+        <div className={textMuted}><LoadingSkeleton variant="dashboard" count={6} /></div>
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

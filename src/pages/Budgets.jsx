@@ -7,6 +7,8 @@ import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import { toast } from "@/components/ui/use-toast";
 
 const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
 const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
@@ -59,6 +61,7 @@ export default function Budgets() {
       else await base44.entities.Budget.create(data);
       await load();
       setShowModal(false);
+      toast({ title: editingId ? "Budget updated" : "Budget saved" });
     } catch (error) {
       setSaveError(error.message || "Unable to save this budget.");
     } finally {
@@ -70,6 +73,7 @@ export default function Budgets() {
     setConfirmDelete(null);
     await base44.entities.Budget.delete(id);
     setBudgets(prev => prev.filter(b => b.id !== id));
+    toast({ title: "Budget deleted" });
   };
 
   const monthBudgets = budgets.filter(b => b.month === selectedMonth);
@@ -129,7 +133,7 @@ export default function Budgets() {
 
       {/* Budget cards */}
       <div className="space-y-3">
-        {loading && <div className={`text-center py-12 ${textMuted}`}>Loading...</div>}
+        {loading && <div className={textMuted}><LoadingSkeleton variant="list" count={4} /></div>}
         {!loading && monthBudgets.length === 0 && (
           <div className="text-center py-16">
             <Target size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
@@ -154,12 +158,12 @@ export default function Budgets() {
                   <span className={`text-xs font-medium ${over ? "text-red-400" : textMuted}`}>
                     {fmt(spent)} / {fmt(b.monthly_limit)}
                   </span>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(b)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
-                      <Pencil size={13} className={textMuted} />
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
+                    <button onClick={() => openEdit(b)} aria-label={`Edit ${CAT_LABELS[b.category] || b.category} budget`} className={`h-11 w-11 flex items-center justify-center rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                      <Pencil size={16} className={textMuted} />
                     </button>
-                    <button onClick={() => setConfirmDelete(b)} className="p-1.5 hover:bg-red-50 rounded-lg">
-                      <Trash2 size={13} className="text-red-400" />
+                    <button onClick={() => setConfirmDelete(b)} aria-label={`Delete ${CAT_LABELS[b.category] || b.category} budget`} className="h-11 w-11 flex items-center justify-center hover:bg-red-50 rounded-lg">
+                      <Trash2 size={16} className="text-red-400" />
                     </button>
                   </div>
                 </div>

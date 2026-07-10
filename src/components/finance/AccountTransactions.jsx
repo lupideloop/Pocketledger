@@ -3,22 +3,25 @@ import { createPortal } from "react-dom";
 import { base44 } from "@/api/base44Client";
 import { X, TrendingUp, TrendingDown } from "lucide-react";
 import { useTheme } from "@/components/finance/ThemeContext";
+import useAccessibleDialog from "@/hooks/useAccessibleDialog";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
 
 export default function AccountTransactions({ account, onClose }) {
   const { dark, fmt } = useTheme();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { dialogRef, titleId, close } = useAccessibleDialog(onClose);
 
   // Handle Android hardware back button
   useEffect(() => {
-    const handlePopState = () => onClose();
+    const handlePopState = () => close();
     window.history.pushState({ modal: true }, "");
     window.addEventListener("popstate", handlePopState);
     return () => {
       window.removeEventListener("popstate", handlePopState);
       if (window.history.state?.modal) window.history.back();
     };
-  }, [onClose]);
+  }, [close]);
 
   useEffect(() => {
     Promise.all([
@@ -45,15 +48,15 @@ export default function AccountTransactions({ account, onClose }) {
 
   const modal = (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[85vh] flex flex-col ${bg}`}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} aria-hidden="true" />
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={`relative rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[85vh] flex flex-col ${bg}`}>
         {/* Header */}
         <div className={`flex items-center justify-between p-5 border-b ${border} flex-shrink-0`}>
           <div>
-            <h2 className={`text-lg font-semibold ${textPrimary}`}>{account.name}</h2>
+            <h2 id={titleId} className={`text-lg font-semibold ${textPrimary}`}>{account.name}</h2>
             <p className={`text-xs ${textMuted}`}>{account.institution} · Transaction History</p>
           </div>
-          <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-white/50" : "hover:bg-[#F8F7F4] text-[#8A8A99]"}`}>
+          <button type="button" onClick={close} aria-label="Close transaction history" className={`h-11 w-11 flex items-center justify-center rounded-lg transition-colors ${dark ? "hover:bg-white/10 text-white/50" : "hover:bg-[#F8F7F4] text-[#8A8A99]"}`}>
             <X size={16} />
           </button>
         </div>
@@ -66,7 +69,7 @@ export default function AccountTransactions({ account, onClose }) {
 
         {/* Transaction list */}
         <div className={`overflow-y-auto flex-1 divide-y ${divider}`}>
-          {loading && <p className={`text-center py-10 ${textMuted}`}>Loading...</p>}
+          {loading && <div className={`p-4 ${textMuted}`}><LoadingSkeleton variant="list" count={4} /></div>}
           {!loading && transactions.length === 0 && (
             <p className={`text-center py-10 ${textMuted} text-sm`}>No transactions linked to this account.</p>
           )}

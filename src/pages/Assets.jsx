@@ -7,6 +7,8 @@ import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import { toast } from "@/components/ui/use-toast";
 
 const CATEGORIES = ["real_estate", "vehicle", "jewelry", "art", "collectibles", "business", "other"];
 const CAT_LABELS = { real_estate: "Real Estate", vehicle: "Vehicle", jewelry: "Jewelry", art: "Art", collectibles: "Collectibles", business: "Business", other: "Other" };
@@ -40,6 +42,7 @@ export default function Assets() {
       else await base44.entities.Asset.create(data);
       await load();
       setShowModal(false);
+      toast({ title: editingId ? "Asset updated" : "Asset saved" });
     } catch (error) {
       setSaveError(error.message || "Unable to save this asset.");
     } finally {
@@ -51,6 +54,7 @@ export default function Assets() {
     setConfirmDelete(null);
     await base44.entities.Asset.delete(id);
     setAssets(prev => prev.filter(a => a.id !== id));
+    toast({ title: "Asset deleted" });
   };
 
   const total = assets.reduce((s, a) => s + (a.current_value || 0), 0);
@@ -87,7 +91,7 @@ export default function Assets() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading && <div className={`col-span-3 text-center py-12 ${textMuted}`}>Loading...</div>}
+        {loading && <div className={`col-span-3 ${textMuted}`}><LoadingSkeleton variant="cards" count={3} /></div>}
         {!loading && assets.length === 0 && (
           <div className="col-span-3 text-center py-16">
             <BarChart3 size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
@@ -102,12 +106,12 @@ export default function Assets() {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? "bg-white/5" : "bg-[#F8F7F4]"}`}>
                   <BarChart3 size={18} className="text-[#C9A84C]" />
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
-                  <button onClick={() => openEdit(a)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
-                    <Pencil size={13} className={textMuted} />
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
+                  <button onClick={() => openEdit(a)} aria-label={`Edit ${a.name}`} className={`h-11 w-11 flex items-center justify-center rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                    <Pencil size={16} className={textMuted} />
                   </button>
-                  <button onClick={() => setConfirmDelete(a)} className="p-1.5 hover:bg-red-50 rounded-lg">
-                    <Trash2 size={13} className="text-red-400" />
+                  <button onClick={() => setConfirmDelete(a)} aria-label={`Delete ${a.name}`} className="h-11 w-11 flex items-center justify-center hover:bg-red-50 rounded-lg">
+                    <Trash2 size={16} className="text-red-400" />
                   </button>
                 </div>
               </div>

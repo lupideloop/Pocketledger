@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 
 const ThemeContext = createContext();
 
@@ -39,15 +40,41 @@ export function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
+    base44.auth.me().then(async user => {
+      if (user.theme_preference) setDark(user.theme_preference === "dark");
+      if (user.currency_preference) {
+        const remoteCurrency = CURRENCIES.find(c => c.code === user.currency_preference) || CURRENCIES[0];
+        setCurrency(remoteCurrency);
+        try { localStorage.setItem("hf-currency", remoteCurrency.code); } catch {}
+      }
+      if (!user.theme_preference || !user.currency_preference) {
+        await base44.auth.updateMe({
+          theme_preference: user.theme_preference || (dark ? "dark" : "light"),
+          currency_preference: user.currency_preference || currency.code,
+        });
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     try { localStorage.setItem("hf-theme", dark ? "dark" : "light"); } catch {}
     if (dark) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
   }, [dark]);
 
+  const toggle = () => {
+    setDark(current => {
+      const next = !current;
+      base44.auth.updateMe({ theme_preference: next ? "dark" : "light" }).catch(() => {});
+      return next;
+    });
+  };
+
   const changeCurrency = (code) => {
     const found = CURRENCIES.find(c => c.code === code) || CURRENCIES[0];
     setCurrency(found);
     try { localStorage.setItem("hf-currency", found.code); } catch {}
+    base44.auth.updateMe({ currency_preference: found.code }).catch(() => {});
   };
 
   const fmt = (n) => {
@@ -61,7 +88,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ dark, toggle: () => setDark(d => !d), currency, changeCurrency, fmt }}>
+    <ThemeContext.Provider value={{ dark, toggle, currency, changeCurrency, fmt }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -7,6 +7,8 @@ import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
+import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import { toast } from "@/components/ui/use-toast";
 
 const CATEGORIES = ["mortgage", "car_loan", "student_loan", "credit_card", "personal_loan", "medical", "tax_debt", "other"];
 const CAT_LABELS = { mortgage: "Mortgage", car_loan: "Car Loan", student_loan: "Student Loan", credit_card: "Credit Card", personal_loan: "Personal Loan", medical: "Medical", tax_debt: "Tax Debt", other: "Other" };
@@ -57,6 +59,7 @@ export default function Liabilities() {
       else await base44.entities.Liability.create(data);
       await load();
       setShowModal(false);
+      toast({ title: editingId ? "Liability updated" : "Liability saved" });
     } catch (error) {
       setSaveError(error.message || "Unable to save this liability.");
     } finally {
@@ -68,6 +71,7 @@ export default function Liabilities() {
     setConfirmDelete(null);
     await base44.entities.Liability.delete(id);
     setItems(prev => prev.filter(i => i.id !== id));
+    toast({ title: "Liability deleted" });
   };
 
   const total = items.reduce((s, i) => s + (i.current_balance || 0), 0);
@@ -105,7 +109,7 @@ export default function Liabilities() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading && <div className={`col-span-3 text-center py-12 ${textMuted}`}>Loading...</div>}
+        {loading && <div className={`col-span-3 ${textMuted}`}><LoadingSkeleton variant="cards" count={3} /></div>}
         {!loading && items.length === 0 && (
           <div className="col-span-3 text-center py-16">
             <Landmark size={40} className={`mx-auto mb-3 ${dark ? "text-white/10" : "text-[#E8E6E1]"}`} />
@@ -120,12 +124,12 @@ export default function Liabilities() {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? "bg-white/5" : "bg-[#F8F7F4]"}`}>
                   <Landmark size={18} className="text-red-400" />
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
-                  <button onClick={() => openEdit(item)} className={`p-1.5 rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
-                    <Pencil size={13} className={textMuted} />
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
+                  <button onClick={() => openEdit(item)} aria-label={`Edit ${item.name}`} className={`h-11 w-11 flex items-center justify-center rounded-lg ${dark ? "hover:bg-white/10" : "hover:bg-[#F8F7F4]"}`}>
+                    <Pencil size={16} className={textMuted} />
                   </button>
-                  <button onClick={() => setConfirmDelete(item)} className="p-1.5 hover:bg-red-50 rounded-lg">
-                    <Trash2 size={13} className="text-red-400" />
+                  <button onClick={() => setConfirmDelete(item)} aria-label={`Delete ${item.name}`} className="h-11 w-11 flex items-center justify-center hover:bg-red-50 rounded-lg">
+                    <Trash2 size={16} className="text-red-400" />
                   </button>
                 </div>
               </div>
