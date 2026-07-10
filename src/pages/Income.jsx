@@ -12,13 +12,6 @@ const CAT_LABELS = { salary:"Salary", freelance:"Freelance", business:"Business"
 const RECURRENCES = ["one-time","monthly","weekly","bi-weekly","yearly"];
 const empty = { source:"", amount:"", category:"salary", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time", bank_account_id:"", bank_account_name:"" };
 
-async function adjustBalance(accountId, delta) {
-  if (!accountId) return;
-  const acct = await base44.entities.BankAccount.list().then(list => list.find(a => a.id === accountId));
-  if (!acct) return;
-  await base44.entities.BankAccount.update(accountId, { balance: (acct.balance || 0) + delta });
-}
-
 export default function Income() {
   const { dark, fmt } = useTheme();
   const [items, setItems] = useState([]);
@@ -29,6 +22,7 @@ export default function Income() {
   const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => Promise.all([
@@ -38,8 +32,8 @@ export default function Income() {
 
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(empty); setEditingId(null); setEditingItem(null); setShowModal(true); };
-  const openEdit = (item) => { setForm({ ...item, amount: item.amount ?? "" }); setEditingId(item.id); setEditingItem(item); setShowModal(true); };
+  const openAdd = () => { setForm(empty); setEditingId(null); setEditingItem(null); setSaveError(""); setShowModal(true); };
+  const openEdit = (item) => { setForm({ ...item, amount: item.amount ?? "" }); setEditingId(item.id); setEditingItem(item); setSaveError(""); setShowModal(true); };
 
   const handleBankChange = (id) => {
     const acct = bankAccounts.find(b => b.id === id);
@@ -49,43 +43,31 @@ export default function Income() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const newAmount = parseFloat(form.amount);
-    const data = { ...form, amount: newAmount };
-
-    // Optimistic update
-    if (editingId && editingItem) {
-      setItems(prev => prev.map(i => i.id === editingId ? { ...i, ...data } : i));
-    } else {
-      setItems(prev => [{ ...data, id: `tmp-${Date.now()}` }, ...prev]);
+    setSaveError("");
+    try {
+      await base44.functions.invoke("saveFinancialTransaction", {
+        kind: "income",
+        action: editingId ? "update" : "create",
+        id: editingId,
+        data: { ...form, amount: parseFloat(form.amount) },
+      });
+      await load();
+      setShowModal(false);
+    } catch (error) {
+      setSaveError(error.response?.data?.error || error.message || "Unable to save this income entry.");
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
-    setSubmitting(false);
-
-    // Persist in background
-    if (editingId && editingItem) {
-      const oldAccountId = editingItem.bank_account_id;
-      const oldAmount = editingItem.amount || 0;
-      const newAccountId = form.bank_account_id;
-      if (oldAccountId === newAccountId) {
-        if (oldAccountId) await adjustBalance(oldAccountId, newAmount - oldAmount);
-      } else {
-        if (oldAccountId) await adjustBalance(oldAccountId, -oldAmount);
-        if (newAccountId) await adjustBalance(newAccountId, newAmount);
-      }
-      await base44.entities.Income.update(editingId, data);
-    } else {
-      if (form.bank_account_id) await adjustBalance(form.bank_account_id, newAmount);
-      await base44.entities.Income.create(data);
-    }
-    load(); // sync real IDs
   };
 
   const handleDelete = async (item) => {
-    // Optimistic removal
-    setItems(prev => prev.filter(i => i.id !== item.id));
+    await base44.functions.invoke("saveFinancialTransaction", {
+      kind: "income",
+      action: "delete",
+      id: item.id,
+    });
     setConfirmDelete(null);
-    if (item.bank_account_id) await adjustBalance(item.bank_account_id, -(item.amount || 0));
-    await base44.entities.Income.delete(item.id);
+    await load();
   };
 
   const total = items.reduce((s, i) => s + (i.amount || 0), 0);
@@ -175,6 +157,7 @@ export default function Income() {
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any notes..." />
           </Field>
+          {saveError && <p className="text-sm text-red-400" role="alert">{saveError}</p>}
         </FormModal>
       )}
     </div>
