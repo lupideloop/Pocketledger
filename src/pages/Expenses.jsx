@@ -7,10 +7,13 @@ import ConfirmDialog from "@/components/finance/ConfirmDialog";
 import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup";
 import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
+import TransactionFilters from "@/components/finance/TransactionFilters";
+import ListPagination from "@/components/finance/ListPagination";
 
 const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
 const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
 const RECURRENCES = ["one-time","monthly","weekly","yearly"];
+const PAGE_SIZE = 25;
 const empty = { title:"", amount:"", category:"food", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time", bank_account_id:"", bank_account_name:"" };
 
 export default function Expenses() {
@@ -24,6 +27,9 @@ export default function Expenses() {
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = () => Promise.all([
@@ -72,6 +78,11 @@ export default function Expenses() {
   };
 
   const total = items.reduce((s, i) => s + (i.amount || 0), 0);
+  const query = search.trim().toLowerCase();
+  const filteredItems = items.filter(item => (!categoryFilter || item.category === categoryFilter) && (!query || `${item.title} ${item.bank_account_name || ""} ${item.date || ""}`.toLowerCase().includes(query)));
+  const pageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const pageItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
   const textPrimary = dark ? "text-white" : "text-[#1A1A2E]";
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
   const card = dark ? "bg-[#1E1E30] border-white/10" : "bg-white border-[#E8E6E1]";
@@ -88,6 +99,8 @@ export default function Expenses() {
         </Button>
       </div>
 
+      <TransactionFilters search={search} onSearch={value => { setSearch(value); setPage(1); }} category={categoryFilter} onCategory={value => { setCategoryFilter(value); setPage(1); }} categories={CATEGORIES} labels={CAT_LABELS} count={filteredItems.length} />
+
       <div className={`rounded-2xl border divide-y ${card} ${dark ? "divide-white/5" : "divide-[#F0EDE8]"}`}>
         {loading && <div className={`text-center py-12 ${textMuted}`}>Loading...</div>}
         {!loading && items.length === 0 && (
@@ -96,7 +109,8 @@ export default function Expenses() {
             <p className={textMuted}>No expenses yet. Add your first!</p>
           </div>
         )}
-        {items.map(item => (
+        {!loading && items.length > 0 && filteredItems.length === 0 && <div className={`text-center py-12 text-sm ${textMuted}`}>No expenses match your search.</div>}
+        {pageItems.map(item => (
           <div key={item.id} className="flex items-center justify-between px-5 py-4 group">
             <div>
               <p className={`font-medium text-sm ${textPrimary}`}>{item.title}</p>
@@ -116,6 +130,7 @@ export default function Expenses() {
           </div>
         ))}
       </div>
+      <ListPagination page={page} pageCount={pageCount} onPage={setPage} />
 
       {confirmDelete && (
         <ConfirmDialog
@@ -148,6 +163,7 @@ export default function Expenses() {
             <Select value={form.recurrence} onChange={e => setForm(f => ({ ...f, recurrence: e.target.value, recurring: e.target.value !== "one-time" }))}>
               {RECURRENCES.map(r => <option key={r} value={r}>{r}</option>)}
             </Select>
+            {form.recurring && <p className="text-xs text-[#8A8A99]">Future occurrences are generated automatically each day.</p>}
           </Field>
           <Field label="From Bank Account (optional)">
             <Select value={form.bank_account_id} onChange={e => handleBankChange(e.target.value)}>

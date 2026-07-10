@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import { User, Trash2, LogOut, AlertTriangle, ChevronRight, Moon, Sun, DollarSign } from "lucide-react";
+import ExportBackupButton from "@/components/finance/ExportBackupButton";
 
 export default function Settings() {
   const { dark, toggle, currency, changeCurrency } = useTheme();
@@ -116,6 +117,13 @@ export default function Settings() {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className={`rounded-2xl border ${card} overflow-hidden`}>
+        <div className={`px-5 py-3 border-b text-xs font-semibold uppercase tracking-wider ${textMuted} ${dark ? "border-white/5" : "border-[#F0EDE8]"}`}>
+          Data & Backup
+        </div>
+        <ExportBackupButton />
       </div>
 
       {/* Danger zone */}

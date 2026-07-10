@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/components/finance/ThemeContext";
-import { TrendingUp, TrendingDown, Building2, BarChart3, Wallet, CreditCard, Landmark } from "lucide-react";
+import { TrendingUp, TrendingDown, Building2, BarChart3, Wallet, CreditCard, Landmark, PiggyBank, CalendarClock } from "lucide-react";
 
 export default function Dashboard() {
   const { dark, fmt } = useTheme();
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [investments, setInvestments] = useState([]);
   const [assets, setAssets] = useState([]);
   const [liabilities, setLiabilities] = useState([]);
+  const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = () => Promise.all([
@@ -20,13 +21,15 @@ export default function Dashboard() {
     base44.entities.InvestmentAccount.list(),
     base44.entities.Asset.list(),
     base44.entities.Liability.list(),
-  ]).then(([exp, inc, bank, inv, ast, lia]) => {
+    base44.entities.Budget.list(),
+  ]).then(([exp, inc, bank, inv, ast, lia, bud]) => {
     setExpenses(exp);
     setIncome(inc);
     setBankAccounts(bank);
     setInvestments(inv);
     setAssets(ast);
     setLiabilities(lia);
+    setBudgets(bud);
     setLoading(false);
   });
 
@@ -50,6 +53,16 @@ export default function Dashboard() {
   const totalAssets = assets.reduce((s, a) => s + (a.current_value || 0), 0);
   const totalLiabilities = liabilities.reduce((s, l) => s + (l.current_balance || 0), 0);
   const netWorth = totalBankBalance + totalInvestments + totalAssets - totalLiabilities;
+  const monthBudgets = budgets.filter(b => b.month === monthPrefix);
+  const budgetedCategories = new Set(monthBudgets.map(b => b.category));
+  const totalBudget = monthBudgets.reduce((s, b) => s + (b.monthly_limit || 0), 0);
+  const budgetSpending = monthExpenses.filter(e => budgetedCategories.has(e.category)).reduce((s, e) => s + (e.amount || 0), 0);
+  const budgetRemaining = totalBudget - budgetSpending;
+  const today = now.toISOString().slice(0, 10);
+  const nextMonth = new Date(now); nextMonth.setDate(nextMonth.getDate() + 30);
+  const dueBy = nextMonth.toISOString().slice(0, 10);
+  const upcomingLiabilities = liabilities.filter(l => l.due_date && l.due_date >= today && l.due_date <= dueBy);
+  const upcomingPayments = upcomingLiabilities.reduce((s, l) => s + (l.minimum_payment || 0), 0);
 
   const stats = [
     { label: "Net Worth", value: fmt(netWorth), icon: TrendingUp, color: "text-[#C9A84C]", bg: "bg-[#C9A84C]/10" },
@@ -66,6 +79,8 @@ export default function Dashboard() {
       bg: netCashFlow >= 0 ? "bg-green-400/10" : "bg-red-400/10",
       prefix: netCashFlow >= 0 ? "+" : "-",
     },
+    { label: `Budget Remaining · ${monthLabel}`, value: fmt(budgetRemaining), icon: PiggyBank, color: budgetRemaining >= 0 ? "text-cyan-400" : "text-red-400", bg: budgetRemaining >= 0 ? "bg-cyan-400/10" : "bg-red-400/10", sub: monthBudgets.length ? `${monthBudgets.length} active budgets` : "No budgets set" },
+    { label: "Payments Due · Next 30 Days", value: fmt(upcomingPayments), icon: CalendarClock, color: "text-orange-400", bg: "bg-orange-400/10", sub: `${upcomingLiabilities.length} upcoming liabilities` },
   ];
 
   const recentExpenses = expenses.slice(0, 5);
@@ -94,6 +109,7 @@ export default function Dashboard() {
                   <p className={`text-xl lg:text-2xl font-bold mt-1 ${s.color}`}>
                     {s.prefix || ""}{s.value}
                   </p>
+                  {s.sub && <p className={`text-xs mt-1 ${textMuted}`}>{s.sub}</p>}
                 </div>
               );
             })}

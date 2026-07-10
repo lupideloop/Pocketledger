@@ -56,6 +56,18 @@
         "one-time"
       ],
       "default": "one-time"
+    },
+    "recurring_parent_id": {
+      "type": "string",
+      "description": "Source recurring expense ID"
+    },
+    "recurrence_key": {
+      "type": "string",
+      "description": "Idempotency key for a generated occurrence"
+    },
+    "generated_by_recurrence": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

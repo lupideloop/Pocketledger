@@ -48,6 +48,12 @@ export default function Budgets() {
     setSubmitting(true);
     const data = { ...form, monthly_limit: parseFloat(form.monthly_limit) };
     setSaveError("");
+    const duplicate = budgets.find(item => item.id !== editingId && item.category === data.category && item.month === data.month);
+    if (duplicate) {
+      setSaveError("A budget already exists for this category and month.");
+      setSubmitting(false);
+      return;
+    }
     try {
       if (editingId) await base44.entities.Budget.update(editingId, data);
       else await base44.entities.Budget.create(data);

@@ -54,6 +54,18 @@
     },
     "notes": {
       "type": "string"
+    },
+    "recurring_parent_id": {
+      "type": "string",
+      "description": "Source recurring income ID"
+    },
+    "recurrence_key": {
+      "type": "string",
+      "description": "Idempotency key for a generated occurrence"
+    },
+    "generated_by_recurrence": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
