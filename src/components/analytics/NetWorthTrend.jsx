@@ -13,7 +13,7 @@ function getMonthsBetween(start, end) {
   return months;
 }
 
-export default function NetWorthTrend({ bankAccounts, investments, assets, income, expenses, startDate, endDate, fmt, dark }) {
+export default function NetWorthTrend({ bankAccounts, investments, assets, liabilities, income, expenses, startDate, endDate, fmt, dark }) {
   const card = dark ? "bg-[#1E1E30] border-white/10" : "bg-white border-[#E8E6E1]";
   const textPrimary = dark ? "text-white" : "text-[#1A1A2E]";
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
@@ -23,9 +23,10 @@ export default function NetWorthTrend({ bankAccounts, investments, assets, incom
     return (
       bankAccounts.reduce((s, b) => s + (b.balance || 0), 0) +
       investments.reduce((s, i) => s + (i.balance || 0), 0) +
-      assets.reduce((s, a) => s + (a.current_value || 0), 0)
+      assets.reduce((s, a) => s + (a.current_value || 0), 0) -
+      (liabilities || []).reduce((s, l) => s + (l.current_balance || 0), 0)
     );
-  }, [bankAccounts, investments, assets]);
+  }, [bankAccounts, investments, assets, liabilities]);
 
   // Reconstruct net worth over time by walking backwards from current value
   const data = useMemo(() => {

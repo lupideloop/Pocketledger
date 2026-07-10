@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/components/finance/ThemeContext";
-import { TrendingUp, TrendingDown, Building2, BarChart3, Wallet, CreditCard } from "lucide-react";
+import { TrendingUp, TrendingDown, Building2, BarChart3, Wallet, CreditCard, Landmark } from "lucide-react";
 
 export default function Dashboard() {
   const { dark, fmt } = useTheme();
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [investments, setInvestments] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [liabilities, setLiabilities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = () => Promise.all([
@@ -18,12 +19,14 @@ export default function Dashboard() {
     base44.entities.BankAccount.list(),
     base44.entities.InvestmentAccount.list(),
     base44.entities.Asset.list(),
-  ]).then(([exp, inc, bank, inv, ast]) => {
+    base44.entities.Liability.list(),
+  ]).then(([exp, inc, bank, inv, ast, lia]) => {
     setExpenses(exp);
     setIncome(inc);
     setBankAccounts(bank);
     setInvestments(inv);
     setAssets(ast);
+    setLiabilities(lia);
     setLoading(false);
   });
 
@@ -39,12 +42,14 @@ export default function Dashboard() {
   const totalBankBalance = bankAccounts.reduce((s, b) => s + (b.balance || 0), 0);
   const totalInvestments = investments.reduce((s, i) => s + (i.balance || 0), 0);
   const totalAssets = assets.reduce((s, a) => s + (a.current_value || 0), 0);
-  const netWorth = totalBankBalance + totalInvestments + totalAssets;
+  const totalLiabilities = liabilities.reduce((s, l) => s + (l.current_balance || 0), 0);
+  const netWorth = totalBankBalance + totalInvestments + totalAssets - totalLiabilities;
 
   const stats = [
     { label: "Net Worth", value: fmt(netWorth), icon: TrendingUp, color: "text-[#C9A84C]", bg: "bg-[#C9A84C]/10" },
     { label: "Bank Balance", value: fmt(totalBankBalance), icon: Building2, color: "text-blue-400", bg: "bg-blue-400/10" },
     { label: "Investments", value: fmt(totalInvestments), icon: BarChart3, color: "text-purple-400", bg: "bg-purple-400/10" },
+    { label: "Liabilities", value: fmt(totalLiabilities), icon: Landmark, color: "text-orange-400", bg: "bg-orange-400/10" },
     { label: "Total Income", value: fmt(totalIncome), icon: Wallet, color: "text-green-400", bg: "bg-green-400/10" },
     { label: "Total Expenses", value: fmt(totalExpenses), icon: CreditCard, color: "text-red-400", bg: "bg-red-400/10" },
     {

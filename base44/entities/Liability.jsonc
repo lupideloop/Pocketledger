@@ -1,0 +1,53 @@
+{
+  "name": "Liability",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Liability name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "mortgage",
+        "car_loan",
+        "student_loan",
+        "credit_card",
+        "personal_loan",
+        "medical",
+        "tax_debt",
+        "other"
+      ],
+      "description": "Liability category"
+    },
+    "current_balance": {
+      "type": "number",
+      "description": "Outstanding balance still owed"
+    },
+    "original_amount": {
+      "type": "number",
+      "description": "Original loan/debt amount"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Annual interest rate (APR) %"
+    },
+    "minimum_payment": {
+      "type": "number",
+      "description": "Monthly minimum payment"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next payment due date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "current_balance"
+  ]
+}

@@ -15,6 +15,7 @@ export default function Analytics() {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [investments, setInvestments] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [liabilities, setLiabilities] = useState([]);
 
   // Default: last 6 months
   const defaultStart = () => {
@@ -34,12 +35,14 @@ export default function Analytics() {
       base44.entities.BankAccount.list(),
       base44.entities.InvestmentAccount.list(),
       base44.entities.Asset.list(),
-    ]).then(([exp, inc, bank, inv, ast]) => {
+      base44.entities.Liability.list(),
+    ]).then(([exp, inc, bank, inv, ast, lia]) => {
       setExpenses(exp);
       setIncome(inc);
       setBankAccounts(bank);
       setInvestments(inv);
       setAssets(ast);
+      setLiabilities(lia);
       setLoading(false);
     });
   }, []);
@@ -84,6 +87,7 @@ export default function Analytics() {
             bankAccounts={bankAccounts}
             investments={investments}
             assets={assets}
+            liabilities={liabilities}
             fmt={fmt}
             dark={dark}
           />
@@ -99,6 +103,7 @@ export default function Analytics() {
             bankAccounts={bankAccounts}
             investments={investments}
             assets={assets}
+            liabilities={liabilities}
             income={income}
             expenses={expenses}
             startDate={startDate}

@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft, Landmark
 } from "lucide-react";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
@@ -26,6 +26,7 @@ const navItems = [
   { label: "Accounts", page: "BankAccounts", icon: Building2 },
   { label: "Investments", page: "Investments", icon: TrendingUp },
   { label: "Assets", page: "Assets", icon: BarChart3 },
+  { label: "Liabilities", page: "Liabilities", icon: Landmark },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
   { label: "Analytics", page: "Analytics", icon: LineChart },
   { label: "Settings", page: "Settings", icon: Settings },

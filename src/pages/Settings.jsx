@@ -23,13 +23,14 @@ export default function Settings() {
     if (deleteInput !== "DELETE") return;
     setDeleting(true);
     // Delete all user data in parallel
-    const [expenses, incomes, accounts, investments, assets, budgets] = await Promise.all([
-      base44.entities.Expense.list("-date", 500),
-      base44.entities.Income.list("-date", 500),
+    const [expenses, incomes, accounts, investments, assets, budgets, liabilities] = await Promise.all([
+      base44.entities.Expense.list("-date", 5000),
+      base44.entities.Income.list("-date", 5000),
       base44.entities.BankAccount.list(),
       base44.entities.InvestmentAccount.list(),
       base44.entities.Asset.list(),
       base44.entities.Budget.list(),
+      base44.entities.Liability.list(),
     ]);
     await Promise.all([
       ...expenses.map(e => base44.entities.Expense.delete(e.id)),
@@ -38,6 +39,7 @@ export default function Settings() {
       ...investments.map(i => base44.entities.InvestmentAccount.delete(i.id)),
       ...assets.map(a => base44.entities.Asset.delete(a.id)),
       ...budgets.map(b => base44.entities.Budget.delete(b.id)),
+      ...liabilities.map(l => base44.entities.Liability.delete(l.id)),
     ]);
     setDeleting(false);
     base44.auth.logout("/");
@@ -150,7 +152,7 @@ export default function Settings() {
               </div>
             </div>
             <p className={`text-sm ${textMuted}`}>
-              All your expenses, income, accounts, investments, assets and budgets will be permanently deleted.
+              All your expenses, income, accounts, investments, assets, liabilities and budgets will be permanently deleted.
             </p>
             <div>
               <p className={`text-xs mb-2 font-medium ${textMuted}`}>Type <span className="font-bold text-red-400">DELETE</span> to confirm</p>

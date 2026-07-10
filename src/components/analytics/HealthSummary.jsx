@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, Wallet, CreditCard, PiggyBank, Activity } from "lucide-react";
 
-export default function HealthSummary({ expenses, income, bankAccounts, investments, assets, fmt, dark }) {
+export default function HealthSummary({ expenses, income, bankAccounts, investments, assets, liabilities, fmt, dark }) {
   const totalIncome = income.reduce((s, i) => s + (i.amount || 0), 0);
   const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
   const netCashFlow = totalIncome - totalExpenses;
@@ -8,7 +8,8 @@ export default function HealthSummary({ expenses, income, bankAccounts, investme
   const totalBank = bankAccounts.reduce((s, b) => s + (b.balance || 0), 0);
   const totalInvest = investments.reduce((s, i) => s + (i.balance || 0), 0);
   const totalAssets = assets.reduce((s, a) => s + (a.current_value || 0), 0);
-  const netWorth = totalBank + totalInvest + totalAssets;
+  const totalLiabilities = (liabilities || []).reduce((s, l) => s + (l.current_balance || 0), 0);
+  const netWorth = totalBank + totalInvest + totalAssets - totalLiabilities;
 
   const card = dark ? "bg-[#1E1E30] border-white/10" : "bg-white border-[#E8E6E1]";
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
