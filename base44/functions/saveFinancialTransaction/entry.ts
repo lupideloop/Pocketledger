@@ -15,11 +15,21 @@ Deno.serve(async (req) => {
     const balanceSign = kind === 'income' ? 1 : -1;
     const appliedDeltas = [];
 
+    const requireOwnedAccount = async (accountId) => {
+      const account = await base44.entities.BankAccount.get(accountId);
+      if (!account || account.created_by_id !== user.id) {
+        const error = new Error('Forbidden bank account access');
+        error.status = 403;
+        throw error;
+      }
+      return account;
+    };
+
     const adjustBalance = async (accountId, delta) => {
       if (!accountId || !delta) return;
-      await base44.entities.BankAccount.get(accountId);
+      await requireOwnedAccount(accountId);
       await base44.entities.BankAccount.updateMany(
-        { id: accountId },
+        { id: accountId, created_by_id: user.id },
         { $inc: { balance: delta } }
       );
       appliedDeltas.push({ accountId, delta });
@@ -28,7 +38,7 @@ Deno.serve(async (req) => {
     const rollbackBalances = async () => {
       for (const change of [...appliedDeltas].reverse()) {
         await base44.entities.BankAccount.updateMany(
-          { id: change.accountId },
+          { id: change.accountId, created_by_id: user.id },
           { $inc: { balance: -change.delta } }
         );
       }
@@ -72,8 +82,8 @@ Deno.serve(async (req) => {
     const oldAccountId = existing.bank_account_id || '';
     const newAccountId = data.bank_account_id || '';
 
-    if (oldAccountId) await base44.entities.BankAccount.get(oldAccountId);
-    if (newAccountId && newAccountId !== oldAccountId) await base44.entities.BankAccount.get(newAccountId);
+    if (oldAccountId) await requireOwnedAccount(oldAccountId);
+    if (newAccountId && newAccountId !== oldAccountId) await requireOwnedAccount(newAccountId);
 
     const updated = await entity.update(id, { ...data, amount: newAmount });
     try {
@@ -95,6 +105,9 @@ Deno.serve(async (req) => {
       throw error;
     }
   } catch (error) {
-    return Response.json({ error: error.message || 'Unable to save transaction' }, { status: 500 });
+    return Response.json(
+      { error: error.message || 'Unable to save transaction' },
+      { status: error.status || 500 }
+    );
   }
 });
