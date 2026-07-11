@@ -2,8 +2,9 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft, Landmark
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft, Landmark, Calculator
 } from "lucide-react";
+import CalculatorModal from "@/components/finance/CalculatorModal";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
 import useTabHistory from "@/hooks/useTabHistory";
@@ -37,6 +38,7 @@ const tabOrder = bottomTabs.map(t => t.page);
 
 function LayoutInner({ children, currentPageName }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const { dark, toggle, currency, changeCurrency } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -147,6 +149,14 @@ function LayoutInner({ children, currentPageName }) {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => { setCalculatorOpen(true); setMobileOpen(false); }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition-all duration-200"
+          >
+            <Calculator size={16} />
+            Calculator
+          </button>
         </nav>
 
         <div className="px-4 py-4 border-t border-white/10 space-y-2">
@@ -176,6 +186,8 @@ function LayoutInner({ children, currentPageName }) {
           onClick={() => setMobileOpen(false)}
         />
       )}
+
+      <CalculatorModal open={calculatorOpen} onClose={() => setCalculatorOpen(false)} />
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen">
