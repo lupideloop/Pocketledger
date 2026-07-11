@@ -30,6 +30,7 @@ const navItems = [
   { label: "Liabilities", page: "Liabilities", icon: Landmark },
   { label: "Budgets", page: "Budgets", icon: PiggyBank },
   { label: "Analytics", page: "Analytics", icon: LineChart },
+  { label: "Calculator", action: "calculator", icon: Calculator },
   { label: "Settings", page: "Settings", icon: Settings },
 ];
 
@@ -129,7 +130,18 @@ function LayoutInner({ children, currentPageName }) {
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-          {navItems.map(({ label, page, icon: Icon }) => {
+          {navItems.map(({ label, page, action, icon: Icon }) => {
+            if (action === "calculator") return (
+              <button
+                type="button"
+                key={action}
+                onClick={() => { setCalculatorOpen(true); setMobileOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition-all duration-200"
+              >
+                <Icon size={16} />
+                {label}
+              </button>
+            );
             const isActive = currentPageName === page;
             return (
               <Link
@@ -149,14 +161,6 @@ function LayoutInner({ children, currentPageName }) {
               </Link>
             );
           })}
-          <button
-            type="button"
-            onClick={() => { setCalculatorOpen(true); setMobileOpen(false); }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition-all duration-200"
-          >
-            <Calculator size={16} />
-            Calculator
-          </button>
         </nav>
 
         <div className="px-4 py-4 border-t border-white/10 space-y-2">
