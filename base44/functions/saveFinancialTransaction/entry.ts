@@ -1,6 +1,7 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { adjustOwnedBankBalance, getOwnedBankAccount, rollbackBankAdjustment } from '../../shared/bankBalance.ts';
 
-Deno.serve(async (req) => {
+export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -13,34 +14,20 @@ Deno.serve(async (req) => {
 
     const entity = kind === 'expense' ? base44.entities.Expense : base44.entities.Income;
     const balanceSign = kind === 'income' ? 1 : -1;
-    const appliedDeltas = [];
+    const appliedChanges = [];
+    const balanceEffect = (item) => kind === 'expense' && item?.category === 'transfer'
+      ? 0
+      : balanceSign * Number(item?.amount || 0);
 
-    const requireOwnedAccount = async (accountId) => {
-      const account = await base44.entities.BankAccount.get(accountId);
-      if (!account || account.created_by_id !== user.id) {
-        const error = new Error('Forbidden bank account access');
-        error.status = 403;
-        throw error;
-      }
-      return account;
-    };
-
-    const adjustBalance = async (accountId, delta) => {
+    const adjustBalance = async (accountId, delta, date) => {
       if (!accountId || !delta) return;
-      await requireOwnedAccount(accountId);
-      await base44.entities.BankAccount.updateMany(
-        { id: accountId, created_by_id: user.id },
-        { $inc: { balance: delta } }
-      );
-      appliedDeltas.push({ accountId, delta });
+      const change = await adjustOwnedBankBalance(base44, user.id, accountId, delta, date);
+      if (change) appliedChanges.push(change);
     };
 
     const rollbackBalances = async () => {
-      for (const change of [...appliedDeltas].reverse()) {
-        await base44.entities.BankAccount.updateMany(
-          { id: change.accountId, created_by_id: user.id },
-          { $inc: { balance: -change.delta } }
-        );
+      for (const change of [...appliedChanges].reverse()) {
+        await rollbackBankAdjustment(base44, user.id, change);
       }
     };
 
@@ -48,9 +35,11 @@ Deno.serve(async (req) => {
       if (!data || !Number.isFinite(Number(data.amount))) {
         return Response.json({ error: 'A valid amount is required' }, { status: 400 });
       }
-      const created = await entity.create({ ...data, amount: Number(data.amount) });
+      if (data.bank_account_id) await getOwnedBankAccount(base44, user.id, data.bank_account_id);
+      const normalizedData = { ...data, amount: Number(data.amount) };
+      const created = await entity.create(normalizedData);
       try {
-        await adjustBalance(data.bank_account_id, balanceSign * Number(data.amount));
+        await adjustBalance(data.bank_account_id, balanceEffect(normalizedData), data.date);
         return Response.json({ item: created });
       } catch (error) {
         await entity.delete(created.id);
@@ -64,7 +53,7 @@ Deno.serve(async (req) => {
 
     if (action === 'delete') {
       try {
-        await adjustBalance(existing.bank_account_id, -balanceSign * Number(existing.amount || 0));
+        await adjustBalance(existing.bank_account_id, -balanceEffect(existing), existing.date);
         await entity.delete(id);
         return Response.json({ id });
       } catch (error) {
@@ -77,21 +66,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'A valid amount is required' }, { status: 400 });
     }
 
-    const newAmount = Number(data.amount);
-    const oldAmount = Number(existing.amount || 0);
+    const normalizedData = { ...data, amount: Number(data.amount) };
     const oldAccountId = existing.bank_account_id || '';
     const newAccountId = data.bank_account_id || '';
+    const oldEffect = balanceEffect(existing);
+    const newEffect = balanceEffect(normalizedData);
 
-    if (oldAccountId) await requireOwnedAccount(oldAccountId);
-    if (newAccountId && newAccountId !== oldAccountId) await requireOwnedAccount(newAccountId);
+    if (oldAccountId) await getOwnedBankAccount(base44, user.id, oldAccountId);
+    if (newAccountId && newAccountId !== oldAccountId) await getOwnedBankAccount(base44, user.id, newAccountId);
 
-    const updated = await entity.update(id, { ...data, amount: newAmount });
+    const updated = await entity.update(id, normalizedData);
     try {
       if (oldAccountId === newAccountId) {
-        await adjustBalance(oldAccountId, balanceSign * (newAmount - oldAmount));
+        await adjustBalance(oldAccountId, newEffect - oldEffect, data.date || existing.date);
       } else {
-        await adjustBalance(oldAccountId, -balanceSign * oldAmount);
-        await adjustBalance(newAccountId, balanceSign * newAmount);
+        await adjustBalance(oldAccountId, -oldEffect, data.date || existing.date);
+        await adjustBalance(newAccountId, newEffect, data.date || existing.date);
       }
       return Response.json({ item: updated });
     } catch (error) {
@@ -110,4 +100,4 @@ Deno.serve(async (req) => {
       { status: error.status || 500 }
     );
   }
-});
+}

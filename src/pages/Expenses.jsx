@@ -12,8 +12,8 @@ import ListPagination from "@/components/finance/ListPagination";
 import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
 import { toast } from "@/components/ui/use-toast";
 
-const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","other"];
-const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", other:"Other" };
+const CATEGORIES = ["housing","food","transport","utilities","healthcare","entertainment","shopping","education","insurance","savings","debt","transfer","other"];
+const CAT_LABELS = { housing:"Housing", food:"Food", transport:"Transport", utilities:"Utilities", healthcare:"Healthcare", entertainment:"Entertainment", shopping:"Shopping", education:"Education", insurance:"Insurance", savings:"Savings", debt:"Debt", transfer:"Transfer", other:"Other" };
 const RECURRENCES = ["one-time","monthly","weekly","yearly"];
 const PAGE_SIZE = 25;
 const empty = { title:"", amount:"", category:"food", date: new Date().toISOString().split("T")[0], notes:"", recurring: false, recurrence:"one-time", bank_account_id:"", bank_account_name:"" };
@@ -81,7 +81,7 @@ export default function Expenses() {
     toast({ title: "Expense deleted" });
   };
 
-  const total = items.reduce((s, i) => s + (i.amount || 0), 0);
+  const total = items.filter(i => i.category !== "transfer").reduce((s, i) => s + (i.amount || 0), 0);
   const query = search.trim().toLowerCase();
   const filteredItems = items.filter(item => (!categoryFilter || item.category === categoryFilter) && (!query || `${item.title} ${item.bank_account_name || ""} ${item.date || ""}`.toLowerCase().includes(query)));
   const pageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));

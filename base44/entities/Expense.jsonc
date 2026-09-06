@@ -24,6 +24,7 @@
         "insurance",
         "savings",
         "debt",
+        "transfer",
         "other"
       ],
       "description": "Expense category"

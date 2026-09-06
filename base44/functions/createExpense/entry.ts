@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { adjustOwnedBankBalance, getOwnedBankAccount } from '../../shared/bankBalance.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -19,22 +20,32 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Date must use YYYY-MM-DD format.' }, { status: 400 });
     }
 
+    const accountId = typeof payload.bank_account_id === 'string' ? payload.bank_account_id : '';
+    const category = payload.category || 'other';
     const expense = {
       title: payload.title.trim(),
       amount: payload.amount,
-      category: payload.category || 'other',
+      category,
       date,
       recurring: payload.recurring ?? false,
       recurrence: payload.recurrence || 'one-time',
+      ...(typeof payload.notes === 'string' && payload.notes.trim() ? { notes: payload.notes.trim() } : {}),
+      ...(accountId ? { bank_account_id: accountId } : {}),
+      ...(typeof payload.bank_account_name === 'string' && payload.bank_account_name ? { bank_account_name: payload.bank_account_name } : {}),
     };
 
-    if (typeof payload.notes === 'string' && payload.notes.trim()) expense.notes = payload.notes.trim();
-    if (typeof payload.bank_account_id === 'string' && payload.bank_account_id) expense.bank_account_id = payload.bank_account_id;
-    if (typeof payload.bank_account_name === 'string' && payload.bank_account_name) expense.bank_account_name = payload.bank_account_name;
-
+    if (accountId) await getOwnedBankAccount(base44, user.id, accountId);
     const created = await base44.entities.Expense.create(expense);
-    return Response.json(created, { status: 201 });
+    try {
+      if (category !== 'transfer') {
+        await adjustOwnedBankBalance(base44, user.id, accountId, -payload.amount, date);
+      }
+      return Response.json(created, { status: 201 });
+    } catch (error) {
+      await base44.entities.Expense.delete(created.id);
+      throw error;
+    }
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: error.status || 500 });
   }
 }
