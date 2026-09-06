@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useTheme } from "@/components/finance/ThemeContext";
@@ -11,6 +12,21 @@ export default function CalculatorModal({ open, onClose }) {
   const { dark } = useTheme();
   const { display, press, clear } = useCalculator();
   const { dialogRef, titleId, close } = useAccessibleDialog(() => { clear(); onClose(); }, open);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const keyMap = { Enter: "=", "=": "=", Backspace: "⌫", Delete: "C", c: "C", C: "C", "-": "−", "*": "×", "/": "÷" };
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const key = /^\d$/.test(event.key) || [".", "+", "%"].includes(event.key) ? event.key : keyMap[event.key];
+      if (!key) return;
+      event.preventDefault();
+      press(key);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, press]);
+
   if (!open) return null;
 
   return createPortal(
