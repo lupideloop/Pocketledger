@@ -7,6 +7,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import SplashScreen from '@/components/SplashScreen';
+import Transfers from '@/pages/Transfers';
 import { useState } from 'react';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -46,6 +47,11 @@ const AuthenticatedApp = () => {
       <Route path="/" element={
         <LayoutWrapper currentPageName={mainPageKey}>
           <MainPage />
+        </LayoutWrapper>
+      } />
+      <Route path="/Transfers" element={
+        <LayoutWrapper currentPageName="Transfers">
+          <Transfers />
         </LayoutWrapper>
       } />
       {Object.entries(Pages).map(([path, Page]) => (

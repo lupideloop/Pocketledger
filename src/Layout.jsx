@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft, Landmark, Calculator
+  LayoutDashboard, CreditCard, Building2, TrendingUp, Wallet, BarChart3, Menu, Sun, Moon, PiggyBank, RefreshCw, Settings, LineChart, ChevronLeft, Landmark, Calculator, ArrowLeftRight
 } from "lucide-react";
 import CalculatorModal from "@/components/finance/CalculatorModal";
 import { ThemeProvider, useTheme, CURRENCIES } from "@/components/finance/ThemeContext";
@@ -24,6 +24,7 @@ const navItems = [
   { label: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
   { label: "Expenses", page: "Expenses", icon: CreditCard },
   { label: "Income", page: "Income", icon: Wallet },
+  { label: "Transfers", page: "Transfers", icon: ArrowLeftRight },
   { label: "Accounts", page: "BankAccounts", icon: Building2 },
   { label: "Investments", page: "Investments", icon: TrendingUp },
   { label: "Assets", page: "Assets", icon: BarChart3 },
