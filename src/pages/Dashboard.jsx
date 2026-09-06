@@ -44,8 +44,8 @@ export default function Dashboard() {
   const monthPrefix = now.toISOString().slice(0, 7);
   const monthLabel = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
-  const monthIncome = income.filter(i => (i.date || "").startsWith(monthPrefix));
-  const monthExpenses = expenses.filter(e => (e.date || "").startsWith(monthPrefix));
+  const monthIncome = income.filter(i => i.category !== "transfer" && (i.date || "").startsWith(monthPrefix));
+  const monthExpenses = expenses.filter(e => e.category !== "transfer" && (e.date || "").startsWith(monthPrefix));
   const totalIncome = monthIncome.reduce((s, i) => s + (i.amount || 0), 0);
   const totalExpenses = monthExpenses.reduce((s, e) => s + (e.amount || 0), 0);
   const netCashFlow = totalIncome - totalExpenses;

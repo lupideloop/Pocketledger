@@ -49,12 +49,12 @@ export default function Analytics() {
   }, []);
 
   const filteredExpenses = useMemo(() =>
-    expenses.filter(e => e.date >= startDate && e.date <= endDate),
+    expenses.filter(e => e.category !== "transfer" && e.date >= startDate && e.date <= endDate),
     [expenses, startDate, endDate]
   );
 
   const filteredIncome = useMemo(() =>
-    income.filter(i => i.date >= startDate && i.date <= endDate),
+    income.filter(i => i.category !== "transfer" && i.date >= startDate && i.date <= endDate),
     [income, startDate, endDate]
   );
 
@@ -105,8 +105,8 @@ export default function Analytics() {
             investments={investments}
             assets={assets}
             liabilities={liabilities}
-            income={income}
-            expenses={expenses}
+            income={filteredIncome}
+            expenses={filteredExpenses}
             startDate={startDate}
             endDate={endDate}
             fmt={fmt}
