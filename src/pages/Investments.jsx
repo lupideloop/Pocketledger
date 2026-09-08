@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormModal from "@/components/finance/FormModal";
 import ConfirmDialog from "@/components/finance/ConfirmDialog";
@@ -8,6 +8,7 @@ import { Field, Input, Select, Textarea } from "@/components/finance/FieldGroup"
 import { useTheme } from "@/components/finance/ThemeContext";
 import FormError from "@/components/finance/FormError";
 import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
+import MarketGuideModal from "@/components/investments/MarketGuideModal";
 import { toast } from "@/components/ui/use-toast";
 
 const ACCOUNT_TYPES = ["brokerage","401k","ira","roth_ira","529","hsa","crypto","other"];
@@ -25,6 +26,7 @@ export default function Investments() {
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [marketGuideOpen, setMarketGuideOpen] = useState(false);
 
   const load = () => base44.entities.InvestmentAccount.list().then(d => { setItems(d); setLoading(false); });
   useEffect(() => { load(); }, []);
@@ -75,9 +77,14 @@ export default function Investments() {
           <h1 className={`text-2xl lg:text-3xl font-bold ${textPrimary}`}>Investments</h1>
           <p className={`${textMuted} mt-1 text-sm`}>{items.length} accounts · {fmt(total)} total value</p>
         </div>
-        <Button onClick={openAdd} className="bg-[#C9A84C] hover:bg-[#b8963f] text-[#1A1A2E] font-semibold rounded-xl gap-2">
-          <Plus size={16} /> Add
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setMarketGuideOpen(true)} className="h-11 rounded-xl gap-2">
+            <Bot size={16} /> Market Guide
+          </Button>
+          <Button onClick={openAdd} className="h-11 bg-[#C9A84C] hover:bg-[#b8963f] text-[#1A1A2E] font-semibold rounded-xl gap-2">
+            <Plus size={16} /> Add
+          </Button>
+        </div>
       </div>
 
       {items.length > 0 && (
@@ -132,6 +139,8 @@ export default function Investments() {
           </div>
         ))}
       </div>
+
+      <MarketGuideModal open={marketGuideOpen} onOpenChange={setMarketGuideOpen} />
 
       {confirmDelete && (
         <ConfirmDialog
