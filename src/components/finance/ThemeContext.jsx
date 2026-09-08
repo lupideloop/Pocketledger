@@ -82,8 +82,8 @@ export function ThemeProvider({ children }) {
     return num.toLocaleString(currency.locale, {
       style: "currency",
       currency: currency.code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
   };
 
