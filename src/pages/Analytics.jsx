@@ -6,6 +6,7 @@ import IncomeTrend from "@/components/analytics/IncomeTrend";
 import NetWorthTrend from "@/components/analytics/NetWorthTrend";
 import HealthSummary from "@/components/analytics/HealthSummary";
 import DateRangePicker from "@/components/analytics/DateRangePicker";
+import AnalyticsPdfButton from "@/components/analytics/AnalyticsPdfButton";
 import LoadingSkeleton from "@/components/finance/LoadingSkeleton";
 
 export default function Analytics() {
@@ -62,19 +63,22 @@ export default function Analytics() {
   const textMuted = dark ? "text-white/40" : "text-[#8A8A99]";
 
   return (
-    <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
+    <div id="analytics-snapshot" className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className={`text-2xl lg:text-3xl font-bold ${textPrimary}`}>Analytics</h1>
           <p className={`${textMuted} mt-1 text-sm`}>Insights into your financial health</p>
         </div>
-        <DateRangePicker
-          startDate={startDate}
-          endDate={endDate}
-          onStartChange={setStartDate}
-          onEndChange={setEndDate}
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <AnalyticsPdfButton targetId="analytics-snapshot" disabled={loading} dark={dark} />
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onStartChange={setStartDate}
+            onEndChange={setEndDate}
+          />
+        </div>
       </div>
 
       {loading ? (
