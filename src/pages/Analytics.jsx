@@ -65,7 +65,7 @@ export default function Analytics() {
   return (
     <div id="analytics-snapshot" className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
         <div>
           <h1 className={`text-2xl lg:text-3xl font-bold ${textPrimary}`}>Analytics</h1>
           <p className={`${textMuted} mt-1 text-sm`}>Insights into your financial health</p>
