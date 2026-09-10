@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { adjustOwnedBankBalance, resolveOwnedBankAccount } from '../../shared/bankBalance.ts';
+import { adjustOwnedBankBalance, getOwnedBankAccount } from '../../shared/bankBalance.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -20,10 +20,7 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Date must use YYYY-MM-DD format.' }, { status: 400 });
     }
 
-    const requestedAccountId = typeof payload.bank_account_id === 'string' ? payload.bank_account_id.trim() : '';
-    const accountName = typeof payload.bank_account_name === 'string' ? payload.bank_account_name.trim() : '';
-    const account = await resolveOwnedBankAccount(base44, user.id, requestedAccountId, accountName);
-    const accountId = account?.id || '';
+    const accountId = typeof payload.bank_account_id === 'string' ? payload.bank_account_id : '';
     const category = payload.category || 'other';
     const expense = {
       title: payload.title.trim(),
@@ -34,8 +31,10 @@ export default async function(req: Request): Promise<Response> {
       recurrence: payload.recurrence || 'one-time',
       ...(typeof payload.notes === 'string' && payload.notes.trim() ? { notes: payload.notes.trim() } : {}),
       ...(accountId ? { bank_account_id: accountId } : {}),
-      ...(account ? { bank_account_name: account.name } : {}),
+      ...(typeof payload.bank_account_name === 'string' && payload.bank_account_name ? { bank_account_name: payload.bank_account_name } : {}),
     };
+
+    if (accountId) await getOwnedBankAccount(base44, user.id, accountId);
     const created = await base44.entities.Expense.create(expense);
     try {
       if (category !== 'transfer') {
