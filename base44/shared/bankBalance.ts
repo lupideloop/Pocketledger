@@ -8,6 +8,26 @@ export async function getOwnedBankAccount(base44, userId, accountId) {
   return account;
 }
 
+export async function resolveOwnedBankAccount(base44, userId, accountId, accountName) {
+  if (accountId) {
+    try {
+      return await getOwnedBankAccount(base44, userId, accountId);
+    } catch (error) {
+      if ((error.status || error.response?.status) !== 404 || !accountName) throw error;
+    }
+  }
+  if (!accountName) return null;
+  const matches = await base44.asServiceRole.entities.BankAccount.filter(
+    { created_by_id: userId, name: accountName },
+    '-updated_date',
+    1,
+  );
+  if (matches.length) return matches[0];
+  const error = new Error(`Bank account not found: ${accountName}`);
+  error.status = 404;
+  throw error;
+}
+
 export async function adjustOwnedBankBalance(base44, userId, accountId, delta, lastUpdated) {
   if (!accountId || !delta) return null;
   const account = await getOwnedBankAccount(base44, userId, accountId);
